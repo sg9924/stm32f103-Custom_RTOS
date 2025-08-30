@@ -102,3 +102,40 @@ void rtosKernel_Launch(uint32_t quanta)
     //Launch Scheduler
     rtosScheduler_Launch();
 }
+
+
+
+
+void rtosScheduler_Launch(void)
+{
+    //Disable all global Interrupts - Setting PRIMASK bit
+    __asm("CPSID I");
+
+
+    //Initialize the ARM Cortex M SP
+    //load address of the current pointer to R0
+    __asm("LDR R0, =pcurrent");
+    //load the address of the TCB of the current task into R2
+    __asm("LDR R2, [R0]");
+    //Load the SP of the current task from the TCB
+    __asm("LDR SP, [R2]");
+    //Restore R4-R11
+    __asm("POP {R4-R11}");
+    //Restore R0-R3
+    __asm("POP {R0-R3}");
+    //Restore R12
+    __asm("POP {R12}");
+    //Skip LR in the saved stack
+    __asm("ADD SP, SP, #4");
+    //Create a new starting point by loading the PC from the saved stack of the TCB pointed by pcurrent into the LR
+    __asm("POP {LR}");
+    //Skip xPSR in the saved stack
+    __asm("ADD SP, SP, #4");
+
+
+    //Enable all global Interrupts - clearing PRIMASK bit
+    __asm("CPSIE I");
+
+    //go to the task
+    __asm("BX LR");
+}
