@@ -45,3 +45,40 @@ void rtosKernel_StackInit(void)
         TCBS_STACK[i][STACKSIZE-16] = 0xAAAAAAA4; //R4
     }
 }
+
+
+//Task Initialize
+//Create Linked List of Tasks
+//Initialize PC for each task
+//Initialize Stack for each Task
+//Initialize Current Task Pointer
+void rtosKernel_TaskInit(void)
+{
+    //Disable all global Interrupts - Setting PRIMASK bit
+    __asm("CPSID I");
+
+    //Initialize Linked list of the tasks
+    for(uint8_t i=0; i<NO_OF_TASKS-1; i++)
+    {
+        TCBS[i].pnext = &(TCBS[i+1]);
+    }
+    TCBS[NO_OF_TASKS-1].pnext = &(TCBS[0]); //circular linking
+
+    //Initialize the tasks stacks
+    rtosKernel_StackInit();
+
+    //get the list of tasks
+    ptask_t* task_list = getTaskList();
+
+    //Initialize the PC for each task
+    for(uint8_t i=0; i<NO_OF_TASKS; i++)
+    {
+        TCBS_STACK[i][STACKSIZE-2] = (int32_t) (*(task_list + i));
+    }
+
+    //Initialize the current pointer of the TCB Linked List
+    pcurrent = &(TCBS[0]);
+
+    //Enable all global Interrupts - clearing PRIMASK bit
+    __asm("CPSIE I");
+}
