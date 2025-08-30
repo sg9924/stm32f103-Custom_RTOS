@@ -139,3 +139,40 @@ void rtosScheduler_Launch(void)
     //go to the task
     __asm("BX LR");
 }
+
+
+
+__attribute__((naked)) void SysTick_Handler(void)
+{
+    //Disable all global Interrupts - Setting PRIMASK bit
+    __asm("CPSID I");
+
+    SYSTICK_TICK_INC();
+
+    //Suspend Current Task - Save its Context
+    //Push R4-R11 onto the stack
+    __asm("PUSH {R4-R11}");
+    //load address of the current pointer to R0
+    __asm("LDR R0, =pcurrent");
+    //load the address of the TCB of the current task into R1
+    __asm("LDR R1, [R0]");
+    //Save the SP of the current task into the TCB
+    __asm("STR SP, [R1]");
+
+    //Switch to the next task
+    //Load R1 with the address of the next TCB
+    __asm("LDR R1, [R1, #4]");
+    //Store address of the next TCB in the current pointer (address at R0)
+    __asm("STR R1, [R0]");
+    //Load the SP from the TCB into Cortex-M SP
+    __asm("LDR SP, [R1]");
+    //Restore R4-R11 into the next task
+    __asm("POP {R4-R11}");
+    
+    
+    //Enable all global Interrupts - clearing PRIMASK bit
+    __asm("CPSIE I");
+
+    //go to the next task
+    __asm("BX LR");
+}
