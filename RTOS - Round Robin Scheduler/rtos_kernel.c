@@ -82,3 +82,23 @@ void rtosKernel_TaskInit(void)
     //Enable all global Interrupts - clearing PRIMASK bit
     __asm("CPSIE I");
 }
+
+
+
+
+void rtosKernel_Launch(uint32_t quanta)
+{
+    //Systick Timer Config
+    SYSTICK_DISABLE();
+    SYSTICK_CLEAR();
+    SYSTICK->CSR |= 1<<SYST_CSR_CLKSOURCE;
+    SYSTICK_LOAD((quanta * (SYSCORE_CLK/1000)) - 1);
+    SCB->SHPR3 |= 0xFF<<24; //set lowest priority for systick handler
+    SYSTICK_ENABLE_INTERRUPT();
+    SYSTICK_ENABLE();
+
+    //Initialize the Tasks
+    rtosKernel_TaskInit();
+    //Launch Scheduler
+    rtosScheduler_Launch();
+}
