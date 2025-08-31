@@ -102,6 +102,26 @@ void rtosKernel_Launch(uint32_t quanta)
 
 
 
+static void rtosScheduler_RoundRobin(void)
+{
+    //go to next task
+    pcurrent = pcurrent->pnext;
+
+    //If the new task is periodic
+    if(pcurrent->period_tick != 0)
+    {
+        //If the current tick matches the next release tick of the periodic task
+        if(pcurrent->next_release_tick == 0 || pcurrent->next_release_tick == Systick_get_tick())
+        {
+            (pcurrent->ptask_func)();
+            pcurrent->next_release_tick = Systick_get_tick() + pcurrent->period_tick;
+        }
+        //Skip the periodic task for no match
+        pcurrent = pcurrent->pnext;
+    }
+}
+
+
 
 void rtosScheduler_Launch(void)
 {
@@ -144,12 +164,6 @@ __attribute__((naked)) void SysTick_Handler(void)
     //Disable all global Interrupts - Setting PRIMASK bit
     DISABLE_IRQ();
 
-    //call systick increment function
-    //save LR
-    __asm("PUSH {LR}");
-    __asm("BL Systick_Tick_Inc");
-    __asm("POP {LR}");
-
 
     //Suspend Current Task - Save its Context
     //Push R4-R11 onto the stack
@@ -161,11 +175,19 @@ __attribute__((naked)) void SysTick_Handler(void)
     //Save the SP of the current task into the TCB
     __asm("STR SP, [R1]");
 
+
     //Switch to the next task
-    //Load R1 with the address of the next TCB
-    __asm("LDR R1, [R1, #4]");
-    //Store address of the next TCB in the current pointer (address at R0)
-    __asm("STR R1, [R0]");
+    //save R0,LR
+    __asm("PUSH {R0,LR}");
+    //call systick increment function
+    __asm("BL Systick_Tick_Inc");
+    //call round robin scheduler
+    __asm("BL rtosScheduler_RoundRobin");
+    //restore R0,LR
+    __asm("POP {R0,LR}");
+
+    //load address of the next TCB in R1 (from address at R0)
+    __asm("LDR R1, [R0]");
     //Load the SP from the TCB into Cortex-M SP
     __asm("LDR SP, [R1]");
     //Restore R4-R11 into the next task
