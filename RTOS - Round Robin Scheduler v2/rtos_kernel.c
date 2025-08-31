@@ -13,32 +13,51 @@ extern tcb_t *pcurrent;          //current pointer to a tcb
 int32_t TCBS_STACK[NO_OF_TASKS][STACKSIZE];     //array for stack for each Task
 
 
+
+void rtosKernel_TaskStackInit(uint8_t task_num)
+{
+    //initialize stack pointer
+    TCBS[task_num].pstack = &(TCBS_STACK[task_num][STACKSIZE-16]);
+
+    //set T bit (bit 24) in xPSR to indicate Thumb state
+    TCBS_STACK[task_num][STACKSIZE-1] = (1<<24);
+
+    //initialize PC and LR
+    TCBS_STACK[task_num][STACKSIZE-2] = (int32_t) (TCBS[task_num].ptask_func); //PC - task function address
+    TCBS_STACK[task_num][STACKSIZE-3]  = 0xFFFFFFF9;               //LR - Return to Thread mode and use MSP
+
+    //initializing stack with dummy contents for other registers
+    for(uint8_t i=4; i<=STACKSIZE; i++)
+    {
+        TCBS_STACK[task_num][STACKSIZE-i]  = 0xDEADBEEF; //Dummy values
+    }
+}
+
+
+
 //RTOS Kernel Stack Initialize
 void rtosKernel_StackInit(void)
 {
-    //get the list of tasks
-    ptask_t* task_list = getTaskList();
-
-    //initialize the task's stack
+    //initialize the stack of each task
     for(uint8_t i=0; i<NO_OF_TASKS; i++)
     {
-        //initialize stack pointer
-        TCBS[i].pstack = &(TCBS_STACK[i][STACKSIZE-16]);
-
-        //set T bit (bit 24) in xPSR to indicate Thumb state
-        TCBS_STACK[i][STACKSIZE-1] = (1<<24);
-
-        //initialize PC and LR
-        TCBS_STACK[i][STACKSIZE-2] = (int32_t) (*(task_list + i)); //PC - task function address
-        TCBS_STACK[i][STACKSIZE-3]  = 0xFFFFFFF9;                  //LR - Return to Thread mode and use MSP
-
-        //initializing stack with dummy contents for other registers
-        for(uint8_t j=4; j<=STACKSIZE; j++)
-        {
-            TCBS_STACK[i][STACKSIZE-j]  = 0xDEADBEEF; //Dummy values
-        }
+        rtosKernel_TaskStackInit(i);
     }
 }
+
+
+void rtosKernel_TCBInit(void)
+{
+    //Initialize Linked list of the tasks
+    for(uint8_t i=0; i<NO_OF_TASKS; i++)
+    {
+        //connect to next TCB node
+        if(i<NO_OF_TASKS-1)
+            TCBS[i].pnext = &(TCBS[i+1]);
+    }
+    TCBS[NO_OF_TASKS-1].pnext = &(TCBS[0]); //circular linking
+}
+
 
 
 void rtosKernel_TaskInit(void)
@@ -46,12 +65,7 @@ void rtosKernel_TaskInit(void)
     //Disable all global Interrupts - Setting PRIMASK bit
     DISABLE_IRQ();
 
-    //Initialize Linked list of the tasks
-    for(uint8_t i=0; i<NO_OF_TASKS-1; i++)
-    {
-        TCBS[i].pnext = &(TCBS[i+1]);
-    }
-    TCBS[NO_OF_TASKS-1].pnext = &(TCBS[0]); //circular linking
+    rtosKernel_TCBInit();
 
     //Initialize the tasks stacks
     rtosKernel_StackInit();
@@ -76,10 +90,12 @@ void rtosKernel_Launch(uint32_t quanta)
     SYSTICK_LOAD((quanta * (SYSCORE_CLK/1000)) - 1);
     SCB->SHPR3 |= 0xFF<<24; //set lowest priority for systick handler
     SYSTICK_ENABLE_INTERRUPT();
-    SYSTICK_ENABLE();
 
     //Initialize the Tasks
     rtosKernel_TaskInit();
+
+    SYSTICK_ENABLE();
+
     //Launch Scheduler
     rtosScheduler_Launch();
 }

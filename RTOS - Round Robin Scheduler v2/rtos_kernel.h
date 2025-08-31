@@ -6,9 +6,11 @@
 #define ENABLE_IRQ()             __asm("CPSIE I")
 
 
+void rtosKernel_TaskStackInit(uint8_t task_num);
 void rtosKernel_StackInit(void);
+void rtosKernel_TCBInit(void);
 void rtosKernel_TaskInit(void);
 void rtosKernel_Launch(uint32_t quanta);
-void rtosScheduler_Launch(void);
+__attribute__((naked)) void rtosScheduler_Launch(void);
 
 #endif
