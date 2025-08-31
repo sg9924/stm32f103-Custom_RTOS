@@ -34,8 +34,8 @@ STARTUP=bp_startup
 SYSCALLS=syscalls
 LINK=bp_linker.ld
 RTOS=rtos_kernel.o rtos_task.o
-DRIVERS=stm32f103xx_gpio.o stm32f103xx_afio.o stm32f103xx_exti.o stm32f103xx_nvic.o /
-        stm32f103xx_usart.o stm32f103xx_rcc.o stm32f103xx_systick.o stm32f103xx_timer.o /
+DRIVERS=stm32f103xx_gpio.o stm32f103xx_afio.o stm32f103xx_exti.o stm32f103xx_nvic.o \
+        stm32f103xx_usart.o stm32f103xx_rcc.o stm32f103xx_systick.o stm32f103xx_timer.o \
 		stm32f103xx_faults.o
 OTHERS=stm32f103xx_init.o stm32f103xx_serial.o stm32f103xx_utilities.o
 #MIDDLEWARE=
