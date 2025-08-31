@@ -21,11 +21,27 @@ ptask_t* getTaskList()
 
 void taskAdd(ptask_t func_ptr, char* task_desc)
 {
-    TCBS[task_count].ptask_func = func_ptr;
+    ptask_list[task_count]             = func_ptr;
+    
+    TCBS[task_count].ptask_func        = func_ptr;
+    TCBS[task_count].task_desc         = task_desc;
+    TCBS[task_count].period_tick       = 0;
+    TCBS[task_count].next_release_tick = 0;
+    task_count++;
+}
+
+
+void taskAdd_Periodic(ptask_t func_ptr, uint32_t period, char* task_desc)
+{
+    ptask_list[task_count]             = func_ptr;
 
     TCBS[task_count].ptask_func        = func_ptr;
     TCBS[task_count].task_desc         = task_desc;
+    TCBS[task_count].period_tick       = period;
+    TCBS[task_count].next_release_tick = 0;
+    task_count++;
 }
+
 
 
 void taskYield(void)

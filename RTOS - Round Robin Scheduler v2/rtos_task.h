@@ -10,16 +10,19 @@ typedef void(*ptask_t)(void);       //task function pointer
 //Task control Block
 typedef struct tcb
 {
-    int32_t*     pstack;            //pointer to the stack
-    struct tcb*  pnext;             //pointer to the next tcb structure (linked list)
-    ptask_t      ptask_func;        //pointer to the task function
-    char*        task_desc;         //task description
+    int32_t*     pstack;                             //pointer to the stack
+    struct tcb*  pnext;                              //pointer to the next tcb structure (linked list)
+    ptask_t      ptask_func;                         //pointer to the task function
+    char*        task_desc;                          //task description
+    uint32_t     period_tick;                        //period asigned to the task
+    uint32_t     next_release_tick;                  //tick value for next release
 }tcb_t;
 
 void __task_count_init(void);
 ptask_t* getTaskList();
 
-void taskAdd(ptask_t func_ptr, char* desc);
+void taskAdd(ptask_t func_ptr, char* task_desc);
+void taskAdd_Periodic(ptask_t func_ptr, uint32_t period, char* task_desc);
 void taskYield(void);
 
 #endif
