@@ -5,6 +5,11 @@
 #include "rtos_config.h"
 
 
+#define TASK_STATE_READY            ('A')
+#define TASK_STATE_RUNNING          ('R')
+#define TASK_STATE_BLOCKED          ('B')
+
+
 typedef void(*ptask_t)(void);       //task function pointer
 
 //Task control Block
@@ -24,11 +29,14 @@ typedef struct tcb
 void __task_count_init(void);
 ptask_t* getTaskList();
 tcb_t* getIdleTask_TCB();
+uint8_t getTaskCount();
 
 void taskAdd(ptask_t func_ptr, char* task_desc);
 void taskAdd_Periodic(ptask_t func_ptr, uint32_t period, char* task_desc);
 void taskAdd_Idle(void);
+void taskDelay(uint32_t tick);
 void taskIdle(void);
+void taskUnblock(void);
 void taskYield(void);
 
 

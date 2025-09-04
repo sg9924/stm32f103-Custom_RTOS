@@ -68,6 +68,13 @@ void rtosKernel_TaskInit(void)
     //Add Idle Task
     taskAdd_Idle();
 
+    //Check if required tasks are added based on NO_OF_TASKS
+    if(getTaskCount() != NO_OF_TASKS)
+    {
+        Serialprint("\r\n[FATAL]: Insuffcient Tasks!! | Configured Tasks: %d | No of Tasks Added: %d", NO_OF_TASKS, getTaskCount());
+        __asm("BKPT #0");
+    }
+
     //Initialize the TCB Linked List Structure
     rtosKernel_TCBInit();
 
@@ -170,6 +177,8 @@ __attribute__((naked)) void SysTick_Handler(void)
     __asm("PUSH {R0,LR}");
     //call systick increment function
     __asm("BL Systick_Tick_Inc");
+    //call task unblock
+    __asm("BL taskUnblock");
     //call round robin scheduler
     __asm("BL rtosScheduler_RoundRobin");
     //restore R0,LR

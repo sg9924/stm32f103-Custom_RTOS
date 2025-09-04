@@ -7,6 +7,8 @@ tcb_t *pcurrent;          //current pointer to a tcb
 static ptask_t ptask_list[NO_OF_TASKS];
 static uint8_t task_count;
 
+extern uint32_t current_tick;
+
 void __task_count_init(void)
 {
     task_count=0;
@@ -22,6 +24,12 @@ ptask_t* getTaskList()
 tcb_t* getIdleTask_TCB()
 {
     return &TCBS[0];
+}
+
+
+uint8_t getTaskCount()
+{
+    return task_count-1;
 }
 
 
@@ -57,6 +65,20 @@ void taskAdd_Idle(void)
 }
 
 
+void taskDelay(uint32_t tick)
+{
+    //for all tasks other than idle task
+    if(pcurrent->task_id)
+    {
+        pcurrent->block_tick = current_tick + tick;
+        pcurrent->task_state = TASK_STATE_BLOCKED;
+
+        //Pend the systick Exception to switch to next task
+        SYSTICK_EXCEPTION_PEND();
+    }
+}
+
+
 void taskIdle(void)
 {
     while(1)
@@ -65,6 +87,20 @@ void taskIdle(void)
     }
 }
 
+
+void taskUnblock(void)
+{
+    tcb_t* temp = pcurrent;
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    {
+        if(temp->task_state == TASK_STATE_BLOCKED)
+        {
+            if(temp->block_tick == current_tick)
+                temp->task_state = TASK_STATE_READY;
+        }
+        temp = temp->pnext;
+    }
+}
 
 
 void taskYield(void)
