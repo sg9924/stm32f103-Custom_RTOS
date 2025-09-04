@@ -106,19 +106,6 @@ static void rtosScheduler_RoundRobin(void)
 {
     //go to next task
     pcurrent = pcurrent->pnext;
-
-    //If the new task is periodic
-    if(pcurrent->period_tick != 0)
-    {
-        //If the current tick matches the next release tick of the periodic task
-        if(pcurrent->next_release_tick == 0 || pcurrent->next_release_tick == Systick_get_tick())
-        {
-            (pcurrent->ptask_func)();
-            pcurrent->next_release_tick = Systick_get_tick() + pcurrent->period_tick;
-        }
-        //Skip the periodic task for no match
-        pcurrent = pcurrent->pnext;
-    }
 }
 
 
