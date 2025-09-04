@@ -6,11 +6,11 @@
 #include "rtos_port.h"
 
 
-extern tcb_t TCBS[NO_OF_TASKS];  //declare an array of TCB's
+extern tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
 extern tcb_t *pcurrent;          //current pointer to a tcb
 
 
-int32_t TCBS_STACK[NO_OF_TASKS][STACKSIZE];     //array for stack for each Task
+int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
 
 
 
@@ -39,7 +39,7 @@ void rtosKernel_TaskStackInit(uint8_t task_num)
 void rtosKernel_StackInit(void)
 {
     //initialize the stack of each task
-    for(uint8_t i=0; i<NO_OF_TASKS; i++)
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
     {
         rtosKernel_TaskStackInit(i);
     }
@@ -49,13 +49,13 @@ void rtosKernel_StackInit(void)
 void rtosKernel_TCBInit(void)
 {
     //Initialize Linked list of the tasks
-    for(uint8_t i=0; i<NO_OF_TASKS; i++)
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
     {
         //connect to next TCB node
-        if(i<NO_OF_TASKS-1)
+        if(i<NO_OF_TASKS)
             TCBS[i].pnext = &(TCBS[i+1]);
     }
-    TCBS[NO_OF_TASKS-1].pnext = &(TCBS[0]); //circular linking
+    TCBS[NO_OF_TASKS].pnext = &(TCBS[0]); //circular linking
 }
 
 
@@ -65,15 +65,17 @@ void rtosKernel_TaskInit(void)
     //Disable all global Interrupts - Setting PRIMASK bit
     DISABLE_IRQ();
 
+    //Add Idle Task
+    taskAdd_Idle();
+
+    //Initialize the TCB Linked List Structure
     rtosKernel_TCBInit();
 
     //Initialize the tasks stacks
     rtosKernel_StackInit();
 
     //Initialize the current pointer of the TCB Linked List
-    pcurrent = &(TCBS[0]);
-
-    __task_count_init();
+    pcurrent = &(TCBS[1]);
 
     //Enable all global Interrupts - clearing PRIMASK bit
     ENABLE_IRQ();
