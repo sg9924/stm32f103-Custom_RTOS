@@ -33,7 +33,7 @@ ELF=final.elf
 STARTUP=bp_startup
 SYSCALLS=syscalls
 LINK=bp_linker.ld
-RTOS=rtos_kernel.o rtos_task.o
+RTOS=rtos_kernel.o rtos_task.o rtos_info
 DRIVERS=stm32f103xx_gpio.o stm32f103xx_afio.o stm32f103xx_exti.o stm32f103xx_nvic.o \
         stm32f103xx_usart.o stm32f103xx_rcc.o stm32f103xx_systick.o stm32f103xx_timer.o \
 		stm32f103xx_faults.o
@@ -53,6 +53,8 @@ final: final.elf
 rtos_kernel.o:rtos_kernel.c
 	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
 rtos_task.o:rtos_task.c
+	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
+rtos_info.o:rtos_info.c
 	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
 stm32f103xx_gpio.o:$(SRC_DIR)/stm32f103xx_gpio.c
 	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
