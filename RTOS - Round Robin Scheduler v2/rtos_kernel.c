@@ -179,8 +179,10 @@ __attribute__((naked)) void SysTick_Handler(void)
     __asm("BL Systick_Tick_Inc");
     //call task unblock
     __asm("BL taskUnblock");
+    #if SCHEDULER == SCHEDULER_ROUND_ROBIN
     //call round robin scheduler
     __asm("BL rtosScheduler_RoundRobin");
+    #endif
     //restore R0,LR
     __asm("POP {R0,LR}");
 
