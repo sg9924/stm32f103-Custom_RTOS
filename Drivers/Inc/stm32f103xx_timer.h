@@ -351,11 +351,12 @@ void TIM_Base_Stop(TIM_Handle* pTIMHandle);
 //DMA
 void TIM_DMA_Init(TIM_RegDef* pTIMx, uint8_t dma_type, uint8_t channel, uint8_t mode);
 
-//
+//Helper API's
 void TIM_Prescaler_Load(TIM_Handle* pTIMHandle, uint32_t prescale_value);
 void TIM_AutoReload_Load(TIM_Handle* pTIMHandle, uint32_t auto_reload_value);
 void TIM_Count_Reset(TIM_Handle* pTIMHandle);
-void TIM_Update_Event_Check(TIM_Handle* pTIMHandle);
+void TIM_Shadow_Reg_Update(TIM_Handle* pTIMHandle);
+void TIM_Status_Clear(TIM_Handle* pTIMHandle, uint16_t flags);
 void TIM_Update_Event_Check(TIM_Handle* pTIMHandle);
 void TIM_Update_Event_Trigger(TIM_Handle* pTIMHandle);
 

@@ -70,6 +70,15 @@ void TIM_Base_init(TIM_Handle* pTIMHandle)
         pTIMHandle->pTIMx->CR1 |= 1<<TIM_CR1_ARPE;
     else if(pTIMHandle->TIMx_Base_Config.ar_preload == TIM_AR_PRELOAD_DISABLE)
         pTIMHandle->pTIMx->CR1 &= ~(1<<TIM_CR1_ARPE);
+    
+    //configure for only Overflow/underflow
+    pTIMHandle->pTIMx->CR1 |= 1<<TIM_CR1_URS;
+
+    //update shadow registers
+    TIM_Shadow_Reg_Update(pTIMHandle);
+
+    //clear status flags
+    TIM_Status_Clear(pTIMHandle, (1<<TIM_SR_CC1IF | 1<<TIM_SR_CC2IF | 1<<TIM_SR_CC3IF | 1<<TIM_SR_CC4IF | 1<<TIM_SR_UIF));
 }
 
 
@@ -168,28 +177,38 @@ void TIM_OC_Stop(TIM_OC_Handle* pTIMOCHandle, uint8_t channel)
 void TIM_Prescaler_Load(TIM_Handle* pTIMHandle, uint32_t prescale_value)
 {
     pTIMHandle->TIMx_Base_Config.prescale_value = prescale_value;
-    pTIMHandle->pTIMx->PSC = prescale_value;
+    pTIMHandle->pTIMx->PSC = prescale_value - 1;
 }
 
 void TIM_AutoReload_Load(TIM_Handle* pTIMHandle, uint32_t auto_reload_value)
 {
     pTIMHandle->TIMx_Base_Config.autoreload_value = auto_reload_value;
-    pTIMHandle->pTIMx->ARR = auto_reload_value;
+    pTIMHandle->pTIMx->ARR = auto_reload_value - 1;
+}
+
+void TIM_Shadow_Reg_Update(TIM_Handle* pTIMHandle)
+{
+    pTIMHandle->pTIMx->EGR |= 1<<TIM_EGR_UG;
+}
+
+void TIM_Status_Clear(TIM_Handle* pTIMHandle, uint16_t flags)
+{
+    pTIMHandle->pTIMx->SR &= ~(flags);
 }
 
 void TIM_Count_Reset(TIM_Handle* pTIMHandle)
 {
-    pTIMHandle->TIMx_Base_Config.count = 0;
     pTIMHandle->pTIMx->CNT = 0;
 }
 
 void TIM_Update_Event_Check(TIM_Handle* pTIMHandle)
 {
+
     //wait till UIF becomes 1
     while(!(pTIMHandle->pTIMx->SR & 1<<TIM_SR_UIF));
 
     //clear UIF flag
-    pTIMHandle->pTIMx->SR &= ~(1<<TIM_SR_UIF);
+    TIM_Status_Clear(pTIMHandle, (1<<TIM_SR_UIF));
 }
 
 void TIM_Update_Event_Trigger(TIM_Handle* pTIMHandle)
