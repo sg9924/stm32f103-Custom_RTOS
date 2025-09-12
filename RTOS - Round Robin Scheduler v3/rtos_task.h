@@ -25,9 +25,6 @@ typedef struct tcb
     uint32_t     block_tick;                         //ticks for which the task should be blocked
     uint32_t     period_tick;                        //period asigned to the task
     uint32_t     next_release_tick;                  //tick value for next release
-    #if SCHEDULER == SCHEDULER_FIXED_PRIORITY
-    uint8_t      task_priority;
-    #endif
 }tcb_t;
 
 void __task_count_init(void);
