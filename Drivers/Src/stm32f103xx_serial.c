@@ -13,9 +13,7 @@ uint8_t char_count;     // Initialize a counter for the number of characters pri
 void _print_buffer(char* buffer, uint32_t* buff_ind)
 {
     if(*buff_ind > 0)
-    {
         USART_TX(&U2, (uint8_t*)buffer, (*buff_ind));
-    }
 }
 
 void _reset_buffer(uint32_t* buff_ind)
@@ -170,27 +168,60 @@ void _print_hex(uint32_t value, char* buffer, uint32_t* buff_ind)
 }
 
 
-void _serial_init()
+void Serial_UART_init()
 {
-    //USART_Config_Default(&U2);
     USART_Configure(&U2, USART_MODE_TXRX, USART_BAUDRATE_9600, USART_CPHA_DEFAULT, USART_CPOL_DEFAULT, USART_WORD_8BIT, USART_PARITY_DISABLE, USART_PARITY_NONE, USART_STOPBIT_DEFAULT);
     USART_init(&U2, &GA, USART2);
 }
 
 void Serial_init()
 {
-    _serial_init();
-    Serialprint("\r\n");
-    Serialprint("Serial Communication has been initialized.\r\n");
+    Serial_UART_init();
+    SERIAL_NL();
+    Serialprint("Serial Communication has been initialized.", INFO);
+    SERIAL_NL();
 }
 
-uint8_t Serialprint(const char *format, ...)
+
+
+
+uint8_t Serialprint(const char *format, uint8_t msg_type, ...)
 {
     char_count = 0;
     buff_ind = 0;
+    
+    if(msg_type == DEBUG)
+    {
+        string_copy(&buffer[0], SERIAL_DEBUG_STRING);
+        buff_ind = string_size(SERIAL_DEBUG_STRING)+1;
+    } 
+    else if(msg_type == INFO)
+    {
+        string_copy(&buffer[0], SERIAL_INFO_STRING);
+        buff_ind = string_size(SERIAL_INFO_STRING)+1;
+    }
+    else if(msg_type == WARN)
+    {
+        string_copy(&buffer[0], SERIAL_WARN_STRING);
+        buff_ind = string_size(SERIAL_WARN_STRING)+1;
+    }
+    else if(msg_type == FATAL)
+    {
+        string_copy(&buffer[0], SERIAL_FATAL_STRING);
+        buff_ind = string_size(SERIAL_FATAL_STRING)+1;
+    }
+    else if(msg_type == ASSERT)
+    {
+        string_copy(&buffer[0], SERIAL_ASSERT_STRING);
+        buff_ind = string_size(SERIAL_ASSERT_STRING)+1;
+    }
+    else
+    {
+        buff_ind = 0;
+    }
 
 	va_list args;                 // initializing list pointer 
-    va_start(args, format);       // Initialize the argument list
+    va_start(args, msg_type);       // Initialize the argument list
 
     while (*format != '\0')       // Iterate over each character in the format string
     {
@@ -280,19 +311,45 @@ uint8_t Serialprint(const char *format, ...)
 }
 
 
-//!!!!!!not working, need to fix!!!!!!!!
-uint8_t Serialprintln(char *format, ...)
-{
-    //add line break at end of the formatted string
-    string_concat(format, "\r\n");
 
-    uint32_t buff_ind;            // Buffer index
-    char buffer[BUFF_SIZE];
+uint8_t Serialprintln(char *format, uint8_t msg_type, ...)
+{
     char_count = 0;
     buff_ind = 0;
+    
+    if(msg_type == DEBUG)
+    {
+        string_copy(&buffer[0], SERIAL_DEBUG_STRING_W_NL);
+        buff_ind = string_size(SERIAL_DEBUG_STRING_W_NL)+1;
+    } 
+    else if(msg_type == INFO)
+    {
+        string_copy(&buffer[0], SERIAL_INFO_STRING_W_NL);
+        buff_ind = string_size(SERIAL_INFO_STRING_W_NL)+1;
+    }
+    else if(msg_type == WARN)
+    {
+        string_copy(&buffer[0], SERIAL_WARN_STRING_W_NL);
+        buff_ind = string_size(SERIAL_WARN_STRING_W_NL)+1;
+    }
+    else if(msg_type == FATAL)
+    {
+        string_copy(&buffer[0], SERIAL_FATAL_STRING_W_NL);
+        buff_ind = string_size(SERIAL_FATAL_STRING_W_NL)+1;
+    }
+    else if(msg_type == ASSERT)
+    {
+        string_copy(&buffer[0], SERIAL_ASSERT_STRING_W_NL);
+        buff_ind = string_size(SERIAL_ASSERT_STRING_W_NL)+1;
+    }
+    else
+    {
+        string_copy(&buffer[0], SERIAL_NL_STRING);
+        buff_ind = 2;
+    }
 
 	va_list args;                 // initializing list pointer 
-    va_start(args, format);       // Initialize the argument list
+    va_start(args, msg_type);       // Initialize the argument list
 
     while (*format != '\0')       // Iterate over each character in the format string
     {
@@ -340,6 +397,22 @@ uint8_t Serialprintln(char *format, ...)
                 int value = va_arg(args, int);
                 _print_int(value, buffer, &buff_ind);
             }
+            else if(*format == 'x')
+            {
+                unsigned int value = va_arg(args, unsigned int);
+                _print_hex(value, buffer, &buff_ind);
+            }
+            else if(*format == '.' && *(format+2) == 'f')
+            {
+                double value = va_arg(args, double);
+                _print_float(value, buffer, &buff_ind, *(++format) - '0');
+                ++format;
+            }
+            else if(*format == 'f')
+            {
+                double value = va_arg(args, double);
+                _print_float(value, buffer, &buff_ind, FLOAT_PRECISION_MAX);
+            }
         }
         else // Case: Regular character, not a conversion specifier
         {
@@ -361,59 +434,8 @@ uint8_t Serialprintln(char *format, ...)
 
     va_end(args); // Clean up the argument list
 
-    //wait(2);
+    wait(SERIAL_DELAY);
     return char_count; // Return the number of characters printed
-}
-
-
-
-void SerialInput(char* msg, uint8_t datatype, void* var)
-{
-    Serialprint(msg);
-
-    if(datatype == SERIAL_RX_STRING)
-    {
-        char* a = (char*)var;
-        uint8_t b_ind = 0;
-        while(1)
-        {
-            USART_RX(&U2, (uint8_t*)a, 1);
-            USART_TX(&U2, (uint8_t*)a, 1);
-            b_ind++;
-            if(*a == '\r')
-                break;
-            a++;
-        }
-        *a = '\0';
-    }
-    else if(datatype == SERIAL_RX_CHAR)
-    {
-        char* a = (char*)var;
-        while(1)
-        {
-            USART_RX(&U2, (uint8_t*)a, 1);
-            USART_TX(&U2, (uint8_t*)a, 1);
-            break;
-        }
-    }
-    else if(datatype == SERIAL_RX_INT)
-    {
-        char rx_buffer[33];
-        char* a = rx_buffer;
-        uint8_t b_ind = 0;
-        while(1)
-        {
-            USART_RX(&U2, (uint8_t*)a, 1);
-            USART_TX(&U2, (uint8_t*)a, 1);
-            b_ind++;
-            if(*a == '\r')
-                break;
-            a++;
-        }
-        *a = '\0';
-
-        *((int32_t*)var) = string_to_int(rx_buffer);
-    }
 }
 
 
