@@ -21,16 +21,19 @@ char* string_truncate(char* pbuff, uint8_t length, uint8_t no_of_chars, uint8_t 
 char* string_concat(char* s1, char* s2);
 char* string_trim(char* pbuff, uint8_t direction, char character, uint32_t length);
 char* array_reverse(char* pbuff, uint8_t length);
-char* string_reverse(char* pbuff, uint8_t length);
+char* string_copy(char* dest, char* src);
+char* end_of_string(char* str);
 
 int8_t digit_extract(uint32_t num, char* pbuff, int8_t buff_index);
 char* parse_int(int32_t num, char* pbuff);
 char* parse_float(float num, char* pbuff, int8_t precision);
 
 int32_t string_to_int(char* str);
-//char* digit_extract(uint32_t num);
 uint8_t no_of_digits(uint32_t num);
 
 uint32_t power(uint8_t num, uint8_t power);
+
+
+//char* digit_extract(uint32_t num);
 
 #endif /*INC_STM32F103XX_UTILITIES_H*/

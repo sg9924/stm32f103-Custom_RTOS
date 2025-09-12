@@ -32,15 +32,16 @@ char* string_truncate(char* pbuff, uint8_t length, uint8_t no_of_chars, uint8_t 
 
 char* string_concat(char* s1, char* s2)
 {
+    char* temp = s1;
     //traverse to end of s1
-    while(*(s1++) !='\0');
-    s1--;
+    temp = end_of_string(s1);
+    temp--;
     
     while(*s2 != '\0')
     {
-        *(s1++) = *(s2++);
+        *(temp++) = *(s2++);
     }
-    *s1='\0';
+    *temp='\0';
 
     return s1;
 }
@@ -85,18 +86,42 @@ char* string_reverse(char* pbuff, uint8_t length)
     return (array_reverse(pbuff, length-1)); //send string excluding '/0' character
 }
 
+char* end_of_string(char* str)
+{
+    char* ptr = str;
+
+    while(*(ptr++) != '\0');
+    
+    return ptr;
+}
+
+
+char* string_copy(char* dest, char* src)
+{
+    char* ptr = dest;
+
+    while(*src != '\0')
+    {
+        *ptr = *src;
+        ptr++;
+        src++;
+    }
+    *ptr = '\0';
+
+    return dest;
+}
 
 
 /* @digit_extract
 Desc: Extracts Digits of uint32_t and stores it in a string
 Input:
-        uint32_t -> number
-        char*    -> buffer address  -> address of buffer where the digits should be stored
-        int8_t   -> buffer index    -> starting index from where the digits should be stored
+    uint32_t -> number
+    char*    -> buffer address  -> address of buffer where the digits should be stored
+    int8_t   -> buffer index    -> starting index from where the digits should be stored
 Output:
-        int8_t   -> buffer index    -> current index of the buffer
+    int8_t   -> buffer index    -> current index of the buffer
 Note:
-* NULL maybe passed to use the result_buff defined here at the top, else a specific buffer address can be passed
+    NULL maybe passed to use the result_buff defined here at the top, else a specific buffer address can also be passed
 */
 int8_t digit_extract(uint32_t num, char* pbuff, int8_t buff_index)
 {
