@@ -10,6 +10,7 @@
 
 RCC_Handle R;
 TIM_Handle Delay;
+GPIO_Handle LED;
 
 void board_init()
 {
@@ -23,39 +24,50 @@ void board_init()
 }
 
 
+void led_init()
+{
+    GPIO_Config(&LED, GPIOC, GPIO_MODE_OP, GPIO_CONFIG_GP_OP_PP, GPIO_PIN13, GPIO_OP_SPEED_2);
+    GPIO_Init(&LED);
+}
+
+
+void led_toggle()
+{
+    GPIO_OpToggle(GPIOC, GPIO_PIN13);
+}
+
+
 void display_cpu_info()
 {
-    Serialprint("\r\nProcessor Info:\r\n");
-    Serialprint("Implementer: %x\r\n", GET_IMPLEMENTER());
-    Serialprint("Variant: %x\r\n", GET_VARIANT());
-    Serialprint("Part No: %x\r\n", GET_PARTNO());
-    Serialprint("Revision: %x\r\n", GET_REVISION());
+    Serialprintln("Processor Info:", INFO);
+    Serialprintln("Implementer: %x", INFO, GET_IMPLEMENTER());
+    Serialprintln("Variant: %x", INFO, GET_VARIANT());
+    Serialprintln("Part No: %x", INFO, GET_PARTNO());
+    Serialprintln("Revision: %x", INFO, GET_REVISION());
 }
 
 
 void display_clk_src()
 {
-    if(RCC_Get_Clock_Source(&R) == RCC_CLK_HSE)
-        Serialprint("\r\n[INFO]: Clock Source is HSE\r\n");
-    else if(RCC_Get_Clock_Source(&R)  == RCC_CLK_HSI)
-        Serialprint("\r\n[INFO]: Clock Source is HSI\r\n");
-    else if(RCC_Get_Clock_Source(&R)  == RCC_CLK_PLL)
-        Serialprint("\r\n[INFO]: Clock Source is PLL\r\n");
+    if(RCC_Get_Clock_Source(&R) == RCC_CLK_HSE)       Serialprintln("Clock Source is HSE", INFO);
+    else if(RCC_Get_Clock_Source(&R)  == RCC_CLK_HSI) Serialprintln("Clock Source is HSI", INFO);
+    else if(RCC_Get_Clock_Source(&R)  == RCC_CLK_PLL) Serialprintln("Clock Source is PLL", INFO);
 }
 
 
 void display_clk_freqs()
 {
-    Serialprint("[INFO]: HCLK is %d MHz\r\n", R.RCC_State.High_Clock/1000000);
-    Serialprint("[INFO]: PCLK1 is %d MHz\r\n", R.RCC_State.P_Clock_1/1000000);
-    Serialprint("[INFO]: PCLK2 is %d MHz\r\n", R.RCC_State.P_Clock_2/1000000);
+    Serialprintln("HCLK is %d MHz", INFO, R.RCC_State.High_Clock/1000000);
+    Serialprintln("PCLK1 is %d MHz", INFO, R.RCC_State.P_Clock_1/1000000);
+    Serialprintln("PCLK2 is %d MHz", INFO, R.RCC_State.P_Clock_2/1000000);
 }
 
 
 void tim_delay_ms(uint16_t delay)
 {
     //Configure Timer 2
-    TIM_Base_Configure(&Delay, TIM2, TIM_COUNT_DIR_UP, (8000-1), delay, TIM_AR_PRELOAD_DISABLE);
+    TIM_Base_Configure(&Delay, TIM2, TIM_COUNT_DIR_UP, (8000-1), delay, TIM_AR_PRELOAD_ENABLE);
+    TIM_Count_Reset(&Delay); //reset count
     TIM_Base_init(&Delay); //initialize
     TIM_Base_Start(&Delay); //enable timer
     TIM_Update_Event_Check(&Delay); //wait for update event flag
@@ -66,7 +78,7 @@ void tim_delay_ms(uint16_t delay)
 void tim_delay_us(uint16_t delay)
 {
     //Configure Timer 2
-    TIM_Base_Configure(&Delay, TIM2, TIM_COUNT_DIR_UP, (8-1), delay, TIM_AR_PRELOAD_DISABLE);
+    TIM_Base_Configure(&Delay, TIM2, TIM_COUNT_DIR_UP, (8-1), delay, TIM_AR_PRELOAD_ENABLE);
     TIM_Base_init(&Delay); //initialize
     TIM_Base_Start(&Delay); //enable timer
     TIM_Update_Event_Check(&Delay); //wait for update event flag
