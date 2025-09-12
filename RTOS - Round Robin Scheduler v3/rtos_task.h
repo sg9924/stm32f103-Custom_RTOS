@@ -13,6 +13,7 @@
 typedef void(*ptask_t)(void);       //task function pointer
 
 //Task control Block
+//!order of structure members should not be changed!
 typedef struct tcb
 {
     int32_t*     pstack;                             //pointer to the stack
@@ -24,20 +25,24 @@ typedef struct tcb
     uint32_t     block_tick;                         //ticks for which the task should be blocked
     uint32_t     period_tick;                        //period asigned to the task
     uint32_t     next_release_tick;                  //tick value for next release
+    #if SCHEDULER == SCHEDULER_FIXED_PRIORITY
+    uint8_t      task_priority;
+    #endif
 }tcb_t;
 
 void __task_count_init(void);
-ptask_t* getTaskList();
-tcb_t* getIdleTask_TCB();
-uint8_t getTaskCount();
-
 void taskAdd(ptask_t func_ptr, char* task_desc);
 void taskAdd_Periodic(ptask_t func_ptr, uint32_t period, char* task_desc);
-void taskAdd_Idle(void);
 void taskDelay(uint32_t tick);
 void taskIdle(void);
 void taskUnblock(void);
 void taskYield(void);
 
+void taskAdd_Idle();
+
+ptask_t getTaskFunc(uint8_t task_num);
+tcb_t* getIdleTask_TCB();
+ptask_t* getTaskList();
+uint8_t getTaskCount();
 
 #endif
