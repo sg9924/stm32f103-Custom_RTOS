@@ -51,6 +51,8 @@ void rtosKernel_TCBInit(void)
     //Initialize Linked list of the tasks
     for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
     {
+        //initialize task state
+        TCBS[i].task_state = TASK_STATE_READY;
         //connect to next TCB node
         if(i<NO_OF_TASKS)
             TCBS[i].pnext = &(TCBS[i+1]);
