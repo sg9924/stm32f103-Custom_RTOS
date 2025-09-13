@@ -9,7 +9,8 @@ void task1(void)
 {
     while(1)
     {
-        Serialprint("\r\nThis is Task 1 running...");
+        Serialprintln("[%x] This is Task 1 running...", INFO, Systick_get_tick());
+        //taskDelay(100);
     }
 }
 
@@ -17,16 +18,16 @@ void task2(void)
 {
     while(1)
     {
-        Serialprint("\r\nThis is Task 2 running...");
-        taskYield();
+        Serialprintln("[%x] This is Task 2 running...", INFO, Systick_get_tick()); 
     }
 }
+
 
 void task3(void)
 {
     while(1)
     {
-        Serialprint("\r\nThis is Task 3 running...");
+        Serialprintln("[%x] This is Task 3 running...", INFO, Systick_get_tick()); 
     }
 }
 
@@ -48,6 +49,6 @@ int main(void)
 
     while(1)
     {
-        Serialprint("\r\n The Tasks have stopped running for some reason...");
+
     }
 }

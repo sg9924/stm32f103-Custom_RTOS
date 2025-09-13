@@ -2,14 +2,14 @@
 
 #include "rtos_kernel.h"
 #include "rtos_config.h"
+#include "rtos_info.h"
 #include "rtos_task.h"
 #include "rtos_port.h"
 
 
-extern tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
-extern tcb_t *pcurrent;          //current pointer to a tcb
 
-
+extern tcb_t TCBS[NO_OF_TASKS+1];                 //an array of TCB's
+extern tcb_t *pcurrent;                           //current pointer to a tcb
 int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
 
 
@@ -61,7 +61,6 @@ void rtosKernel_TCBInit(void)
 }
 
 
-
 void rtosKernel_TaskInit(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
@@ -73,7 +72,8 @@ void rtosKernel_TaskInit(void)
     //Check if required tasks are added based on NO_OF_TASKS
     if(getTaskCount() != NO_OF_TASKS)
     {
-        Serialprint("\r\n[FATAL]: Insuffcient Tasks!! | Configured Tasks: %d | No of Tasks Added: %d", NO_OF_TASKS, getTaskCount());
+        Serialprintln("Insufficient Tasks!! | Configured Tasks: %d | No of Tasks Added: %d", FATAL, NO_OF_TASKS, getTaskCount());
+        SERIAL_NL();
         __asm("BKPT #0");
     }
 
@@ -105,6 +105,7 @@ void rtosKernel_Launch(uint32_t quanta)
     //Initialize the Tasks
     rtosKernel_TaskInit();
 
+    //Enable Systick Timer
     SYSTICK_ENABLE();
 
     //Launch Scheduler
@@ -113,15 +114,29 @@ void rtosKernel_Launch(uint32_t quanta)
 
 
 
-static void rtosScheduler_RoundRobin(void)
+void rtosScheduler_RoundRobin(void)
 {
-    //go to next task
-    pcurrent = pcurrent->pnext;
+    uint8_t state = TASK_STATE_BLOCKED;
+
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    {
+        //go to next task
+        pcurrent = pcurrent->pnext;
+        state = pcurrent->task_state;
+
+        //if the task is ready and it is not a idle task
+        if(state == TASK_STATE_READY && pcurrent->task_id != 0)
+            break;
+    }
+
+    if(state != TASK_STATE_READY)
+        pcurrent = getIdleTask_TCB();
 }
 
 
 
-void rtosScheduler_Launch(void)
+
+__attribute__((naked)) void rtosScheduler_Launch(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
     DISABLE_IRQ();
@@ -177,12 +192,12 @@ __attribute__((naked)) void SysTick_Handler(void)
     //Switch to the next task
     //save R0,LR
     __asm("PUSH {R0,LR}");
-    //call systick increment function
+    //call systick increment
     __asm("BL Systick_Tick_Inc");
     //call task unblock
     __asm("BL taskUnblock");
+    //call scheduler
     #if SCHEDULER == SCHEDULER_ROUND_ROBIN
-    //call round robin scheduler
     __asm("BL rtosScheduler_RoundRobin");
     #endif
     //restore R0,LR
