@@ -23,35 +23,49 @@ void taskAdd(ptask_t func_ptr, char* task_desc)
     TCBS[task_count].task_id           = task_count;
     TCBS[task_count].task_state        = TASK_STATE_READY;
     TCBS[task_count].task_desc         = task_desc;
-    TCBS[task_count].period_tick       = 0;
-    TCBS[task_count].next_release_tick = 0;
     TCBS[task_count].block_tick        = 0;
     task_count++;
 }
 
 
 
-void taskAdd_Periodic(ptask_t func_ptr, uint32_t period, char* task_desc)
+void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
 {
     ptask_list[task_count]             = func_ptr;
-
+    
     TCBS[task_count].ptask_func        = func_ptr;
     TCBS[task_count].task_id           = task_count;
     TCBS[task_count].task_state        = TASK_STATE_READY;
     TCBS[task_count].task_desc         = task_desc;
-    TCBS[task_count].period_tick       = period;
-    TCBS[task_count].next_release_tick = 0;
+    TCBS[task_count].task_weight       = task_weight;
     TCBS[task_count].block_tick        = 0;
     task_count++;
 }
 
 
+
+void taskReset_Quota()
+{
+    tcb_t* tcb = TCBS;
+    if(!tcb) return;
+    do
+    {
+        if(tcb->task_state == TASK_STATE_READY || tcb->task_state == TASK_STATE_RUNNING)
+             tcb->task_quota = tcb->task_weight;
+        tcb = tcb->pnext;
+    }while(tcb != TCBS);
+}
+
+
+
 void taskAdd_Idle()
 {
-    TCBS[0].ptask_func = &taskIdle;
-    TCBS[0].task_desc  = "Idle Task";
-    TCBS[0].task_id    = 0;
+    TCBS[0].ptask_func  = &taskIdle;
+    TCBS[0].task_desc   = "Idle Task";
+    TCBS[0].task_id     = 0;
+    TCBS[0].task_weight = 0;
 }
+
 
 
 void taskDelay(uint32_t tick)
@@ -68,6 +82,7 @@ void taskDelay(uint32_t tick)
 }
 
 
+
 void taskIdle(void)
 {
     while(1)
@@ -75,6 +90,7 @@ void taskIdle(void)
         Serialprint("\r\nNo Tasks to run...", INFO);
     }
 }
+
 
 
 void taskUnblock(void)
@@ -104,14 +120,19 @@ void taskYield(void)
 
 
 
-ptask_t* getTaskList()
+ptask_t getTaskFunc(uint8_t task_num)
+{
+    return ptask_list[task_num];
+}
+
+ptask_t* getTaskFunc_List()
 {
     return ptask_list;  
 }
 
-ptask_t getTaskFunc(uint8_t task_num)
+tcb_t* getTask_List()
 {
-    return ptask_list[task_num];
+    return TCBS;
 }
 
 tcb_t* getIdleTask_TCB()
