@@ -13,20 +13,6 @@ extern tcb_t *pcurrent;                           //current pointer to a tcb
 int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
 
 
-uint8_t assert(uint8_t condition, char* assert_msg)
-{
-    if(condition == 0) //assert failed
-    {
-        Serialprintln(assert_msg, ASSERT);
-        while(1);  //stop execution on assert fail
-
-        return 0;
-    }
-    else //assert succeeded
-        return 1;
-}
-
-
 
 void rtosKernel_TaskStackInit(uint8_t task_num)
 {

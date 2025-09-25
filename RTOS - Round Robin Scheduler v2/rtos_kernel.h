@@ -13,6 +13,4 @@ void rtosKernel_TaskInit(void);
 void rtosKernel_Launch(uint32_t quanta);
 __attribute__((naked)) void rtosScheduler_Launch(void);
 
-uint8_t assert(uint8_t condition, char* assert_msg);
-
 #endif
