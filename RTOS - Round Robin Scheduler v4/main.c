@@ -6,10 +6,9 @@
 //Set quanta in milliseconds for the round robin scheduler
 #define TASK_QUANTA_MS          500
 
-int8_t s1, s2;
+//int8_t s1, s2;
 
-
-extern tcb_t TCBS[NO_OF_TASKS+1];  //an array of TCB's
+tcb_t* tcb_list;
 
 
 /*
@@ -49,8 +48,7 @@ void task1(void)
 {
     while(1)
     {
-        Serialprintln("[%x] This is Task 1 running...", INFO, Systick_get_tick());
-        //taskDelay(100);
+        Serialprintln("[Tick: %x] [Quota: %d] This is Task 1 running...", INFO, Systick_get_tick(), tcb_list[1].task_quota);
     }
 }
 
@@ -58,7 +56,7 @@ void task2(void)
 {
     while(1)
     {
-        Serialprintln("[%x] This is Task 2 running...", INFO, Systick_get_tick()); 
+        Serialprintln("[Tick: %x] [Quota: %d] This is Task 2 running...", INFO, Systick_get_tick(), tcb_list[2].task_quota); 
     }
 }
 
@@ -67,7 +65,7 @@ void task3(void)
 {
     while(1)
     {
-        Serialprintln("[%x] This is Task 3 running...", INFO, Systick_get_tick()); 
+        Serialprintln("[Tick: %x] [Quota: %d] This is Task 3 running...", INFO, Systick_get_tick(), tcb_list[3].task_quota); 
     }
 }
 
@@ -78,18 +76,17 @@ int main(void)
 {
     board_init();
 
-    char a[50] = "Hello";
-    char b[50] = " There";
-
     __task_count_init();
 
-    //Add the tasks
-    taskAdd(&task1, "Task 1");
-    taskAdd(&task2, "Task 2");
-    taskAdd(&task3, "Task 3");
+    //Add the tasks with weights
+    taskAdd_Weighted(&task1, "Task 1", 4);
+    taskAdd_Weighted(&task2, "Task 2", 2);
+    taskAdd_Weighted(&task3, "Task 3", 5);
 
     //Semaphore_Init(&s1, 1);
     //Semaphore_Init(&s2, 0);
+
+    tcb_list = getTask_List();
 
     //Launch Kernel
     rtosKernel_Launch(TASK_QUANTA_MS);
