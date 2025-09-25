@@ -2,9 +2,9 @@
 #define __RTOSCONFIG_H__
 
 
-#define NO_OF_TASKS                                   4
+#define NO_OF_TASKS                                   3
 #define STACKSIZE                                     200
-#define SCHEDULER                                     SCHEDULER_ROUND_ROBIN
+#define SCHEDULER                                     SCHEDULER_RR_WEIGHTED
 
 
 //Configurations
@@ -17,6 +17,7 @@
 
 //definitions
 #define SCHEDULER_ROUND_ROBIN                         (1<<0)
+#define SCHEDULER_RR_WEIGHTED                         (1<<1)
 
 
 #endif
