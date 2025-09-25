@@ -33,6 +33,6 @@ void rtosInfo_Tasks(void)
     }
     Serialprintln("-------------------------------------------------------------------------------", INFO);
 
-    Serialprintln("Starting the %s Scheduler now...\r\n", INFO, rtosInfo_Scheduler());
-    tim_delay_ms(5000);
+    Serialprintln("Starting the %s Scheduler now in %d seconds...\r\n", INFO, rtosInfo_Scheduler(), (RTOS_SCHEDULER_START_DELAY/1000));
+    tim_delay_ms(RTOS_SCHEDULER_START_DELAY);
 }
