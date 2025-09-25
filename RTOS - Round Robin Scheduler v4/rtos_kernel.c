@@ -18,7 +18,7 @@ uint8_t assert(uint8_t condition, char* assert_msg)
     if(condition == 0) //assert failed
     {
         Serialprintln(assert_msg, ASSERT);
-        while(1);                          //stop execution on assert fail
+        while(1);  //stop execution on assert fail
 
         return 0;
     }
@@ -65,8 +65,6 @@ void rtosKernel_TCBInit(void)
     //Initialize Linked list of the tasks
     for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
     {
-        //initialize task state
-        TCBS[i].task_state = TASK_STATE_READY;
         //connect to next TCB node
         if(i<NO_OF_TASKS)
             TCBS[i].pnext = &(TCBS[i+1]);
@@ -127,6 +125,9 @@ void rtosKernel_Launch(uint32_t quanta)
     //Enable Systick Timer
     SYSTICK_ENABLE();
 
+    //Scheduler Initializations
+    rtosScheduler_Init();
+
     //Launch Scheduler
     rtosScheduler_Launch();
 }
@@ -137,20 +138,95 @@ void rtosScheduler_RoundRobin(void)
 {
     uint8_t state = TASK_STATE_BLOCKED;
 
+    //set task state for finished task (not for idle task)
+    if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)
+        pcurrent->task_state = TASK_STATE_READY;
+
     for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
     {
         //go to next task
         pcurrent = pcurrent->pnext;
+        //get its state
         state = pcurrent->task_state;
 
-        //if the task is ready and it is not a idle task
+        //if the new task is ready and it is not a idle task
         if(state == TASK_STATE_READY && pcurrent->task_id != 0)
-            break;
+        {
+            pcurrent->task_state = TASK_STATE_RUNNING;
+            return;
+        }
     }
 
-    if(state != TASK_STATE_READY)
+    //if all the tasks are blocked, run the idle task
+    if(state == TASK_STATE_BLOCKED)
         pcurrent = getIdleTask_TCB();
 }
+
+
+
+void rtosScheduler_RoundRobinWeighted(void)
+{
+    uint8_t state = TASK_STATE_BLOCKED;
+
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    {   
+        //get current task state
+        state = pcurrent->task_state;
+
+        //not an idle task
+        if(pcurrent->task_id != 0)
+        {
+            //if the task is running and quota is not 0
+            if(state == TASK_STATE_RUNNING && pcurrent->task_quota >= 1)
+            {
+                //decrease quota
+                pcurrent->task_quota--;
+            }
+
+            //if the task's quota is 0, then go to next task
+            if(pcurrent->task_quota == 0)
+            {
+                //set current task's state as ready for next run
+                if(pcurrent->task_state == TASK_STATE_RUNNING)
+                    pcurrent->task_state = TASK_STATE_READY;
+
+                //go to next task
+                //if current task is last, skip the idle task to the first task
+                if(pcurrent->task_id == NO_OF_TASKS)
+                {
+                    pcurrent = (pcurrent->pnext)->pnext;
+                    taskReset_Quota();
+                }
+                //else traverse normally
+                else pcurrent = pcurrent->pnext;
+
+                //set new task's state as running
+                pcurrent->task_state = TASK_STATE_RUNNING;
+                return;
+            }
+            //if quota > 0, just return
+            else if(pcurrent->task_quota > 0) return;
+        }
+    }
+
+    //only when loop finishes
+    //if all the tasks are blocked, run the idle task
+    if(state == TASK_STATE_BLOCKED)
+        pcurrent = getIdleTask_TCB();
+}
+
+
+
+void rtosScheduler_Init()
+{
+    #if SCHEDULER == SCHEDULER_RR_WEIGHTED
+    //assign weights to quotas
+    taskReset_Quota();
+    //set first task as running
+    pcurrent->task_state = TASK_STATE_RUNNING;
+    #endif
+}
+
 
 
 
@@ -193,7 +269,7 @@ __attribute__((naked)) void rtosScheduler_Launch(void)
 
 __attribute__((naked)) void SysTick_Handler(void)
 {
-    //Disable all global Interrupts - Setting PRIMASK bit
+    //Disable all global Interrupts
     DISABLE_IRQ()  ;
 
 
@@ -218,6 +294,8 @@ __attribute__((naked)) void SysTick_Handler(void)
     //call scheduler
     #if SCHEDULER == SCHEDULER_ROUND_ROBIN
     __asm("BL rtosScheduler_RoundRobin");
+    #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
+    __asm("BL rtosScheduler_RoundRobinWeighted");
     #endif
     //restore R0,LR
     __asm("POP {R0,LR}");
@@ -230,7 +308,7 @@ __attribute__((naked)) void SysTick_Handler(void)
     __asm("POP {R4-R11}");
     
     
-    //Enable all global Interrupts - clearing PRIMASK bit
+    //Enable all global Interrupts
     ENABLE_IRQ();
 
     //go to the next task
