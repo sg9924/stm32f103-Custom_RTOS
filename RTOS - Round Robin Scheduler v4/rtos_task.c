@@ -31,6 +31,8 @@ void taskAdd(ptask_t func_ptr, char* task_desc)
     TCBS[task_count].task_state        = TASK_STATE_READY;
     TCBS[task_count].task_desc         = task_desc;
     TCBS[task_count].block_tick        = 0;
+
+    Serialprintln("Task %d added", INFO, task_count);
     task_count++;
 }
 
@@ -44,7 +46,7 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
         SERIAL_NL();
         __asm("BKPT #0");
     }
-    
+
     ptask_list[task_count]             = func_ptr;
     
     TCBS[task_count].ptask_func        = func_ptr;
@@ -53,6 +55,8 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
     TCBS[task_count].task_desc         = task_desc;
     TCBS[task_count].task_weight       = task_weight;
     TCBS[task_count].block_tick        = 0;
+
+    Serialprintln("Task %d added", INFO, task_count);
     task_count++;
 }
 
