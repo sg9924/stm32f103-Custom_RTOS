@@ -81,14 +81,6 @@ void rtosKernel_TaskInit(void)
     //Add Idle Task
     taskAdd_Idle();
 
-    //Check if required tasks are added based on NO_OF_TASKS
-    if(getTaskCount() != NO_OF_TASKS)
-    {
-        Serialprintln("Insufficient Tasks!! | Configured Tasks: %d | No of Tasks Added: %d", FATAL, NO_OF_TASKS, getTaskCount());
-        SERIAL_NL();
-        __asm("BKPT #0");
-    }
-
     //Initialize the TCB Linked List Structure
     rtosKernel_TCBInit();
 

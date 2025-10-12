@@ -17,6 +17,13 @@ void __task_count_init(void)
 
 void taskAdd(ptask_t func_ptr, char* task_desc)
 {
+    if(task_count>NO_OF_TASKS)
+    {
+        Serialprintln("Incorrect Task Add!! | Configured Tasks: %d | Current Task No.: %d", FATAL, NO_OF_TASKS, task_count);
+        SERIAL_NL();
+        __asm("BKPT #0");
+    }
+
     ptask_list[task_count]             = func_ptr;
     
     TCBS[task_count].ptask_func        = func_ptr;
@@ -31,6 +38,13 @@ void taskAdd(ptask_t func_ptr, char* task_desc)
 
 void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
 {
+    if(task_count>NO_OF_TASKS)
+    {
+        Serialprintln("Incorrect Task Add!! | Configured Tasks: %d | Current Task No.: %d", FATAL, NO_OF_TASKS, task_count);
+        SERIAL_NL();
+        __asm("BKPT #0");
+    }
+    
     ptask_list[task_count]             = func_ptr;
     
     TCBS[task_count].ptask_func        = func_ptr;
