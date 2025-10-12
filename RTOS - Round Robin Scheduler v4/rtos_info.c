@@ -4,8 +4,6 @@
 #include "rtos_task.h"
 #include "rtos_port.h"
 
-extern tcb_t *pcurrent;              //current pointer to a tcb
-
 
 
 char* rtosInfo_Scheduler(void)
@@ -20,7 +18,7 @@ char* rtosInfo_Scheduler(void)
 
 void rtosInfo_Tasks(void)
 {
-    tcb_t* temp = pcurrent;
+    tcb_t* temp = getTask_List();
     Serialprintln("--------------------------------RTOS Tasks Info--------------------------------", INFO);
     for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
     {
@@ -28,8 +26,10 @@ void rtosInfo_Tasks(void)
         Serialprintln("Task ID: %d | Task Address: %x | Task Description: %s", INFO, temp->task_id, temp, temp->task_desc);
         #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
         Serialprintln("Task ID: %d | Task Address: %x | Task Description: %s | Task Weight: %d", INFO, temp->task_id, temp, temp->task_desc, temp->task_weight);
+        #elif SCHEDULER == SCHEDULER_PRIORITY
+        Serialprintln("Task ID: %d | Task Address: %x | Task Description: %s | Task Priority: %d", INFO, temp->task_id, temp, temp->task_desc, temp->task_priority);
         #endif
-        temp = temp->pnext;
+        temp +=1;
     }
     Serialprintln("-------------------------------------------------------------------------------", INFO);
 
