@@ -76,17 +76,15 @@ int main(void)
 {
     board_init();
 
-    __task_count_init();
+    rtosKernel_Init();
 
     //Add the tasks with weights
-    taskAdd_Weighted(&task1, "Task 1", 4);
-    taskAdd_Weighted(&task2, "Task 2", 2);
-    taskAdd_Weighted(&task3, "Task 3", 5);
+    taskAdd_Weighted(&task1, "Task 1", 4, &tcb_list[1]);
+    taskAdd_Weighted(&task2, "Task 2", 2, &tcb_list[2]);
+    taskAdd_Weighted(&task3, "Task 3", 5, &tcb_list[3]);
 
     //Semaphore_Init(&s1, 1);
     //Semaphore_Init(&s2, 0);
-
-    tcb_list = getTask_List();
 
     //Launch Kernel
     rtosKernel_Launch(TASK_QUANTA_MS);
