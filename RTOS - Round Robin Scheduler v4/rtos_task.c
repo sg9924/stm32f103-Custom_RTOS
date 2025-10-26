@@ -9,13 +9,15 @@ static uint8_t task_count;
 
 extern uint32_t current_tick;
 
+static void taskAdd_Check(uint8_t task_count);
+
 void __task_count_init(void)
 {
     task_count=1;
 }
 
 
-void taskAdd(ptask_t func_ptr, char* task_desc)
+static void taskAdd_Check(uint8_t task_count)
 {
     if(task_count>NO_OF_TASKS)
     {
@@ -23,6 +25,12 @@ void taskAdd(ptask_t func_ptr, char* task_desc)
         SERIAL_NL();
         __asm("BKPT #0");
     }
+}
+
+
+void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t* ptask_handle)
+{
+    taskAdd_Check(task_count);
 
     ptask_list[task_count]             = func_ptr;
     
@@ -33,19 +41,14 @@ void taskAdd(ptask_t func_ptr, char* task_desc)
     TCBS[task_count].block_tick        = 0;
 
     Serialprintln("Task %d added", INFO, task_count);
-    task_count++;
+    ptask_handle = &TCBS[task_count++];
 }
 
 
 
-void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
+void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t* ptask_handle)
 {
-    if(task_count>NO_OF_TASKS)
-    {
-        Serialprintln("Incorrect Task Add!! | Configured Tasks: %d | Current Task No.: %d", FATAL, NO_OF_TASKS, task_count);
-        SERIAL_NL();
-        __asm("BKPT #0");
-    }
+    taskAdd_Check(task_count);
 
     ptask_list[task_count]             = func_ptr;
     
@@ -57,7 +60,7 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
     TCBS[task_count].block_tick        = 0;
 
     Serialprintln("Task %d added", INFO, task_count);
-    task_count++;
+    ptask_handle = &TCBS[task_count++];
 }
 
 
