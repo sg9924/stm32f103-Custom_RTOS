@@ -96,6 +96,18 @@ void rtosKernel_TaskInit(void)
 
 
 
+void rtosKernel_Init()
+{
+    __task_count_init();
+    #if SCHEDULER == SCHEDULER_RR_WEIGHTED
+    taskReset_Quota();
+    //set first task as running
+    pcurrent->task_state = TASK_STATE_RUNNING;
+    #endif
+}
+
+
+
 void rtosKernel_Launch(uint32_t quanta)
 {
     //Systick Timer Config
