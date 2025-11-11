@@ -48,6 +48,7 @@ void task1(void)
     while(1)
     {
         Serialprintln("[Tick: %x] This is Task 1 running...", INFO, Systick_get_tick());
+        taskDelay(5);
     }
 }
 
