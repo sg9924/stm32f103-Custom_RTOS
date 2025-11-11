@@ -2,15 +2,20 @@
 
 #include "rtos_kernel.h"
 #include "rtos_config.h"
+#include "rtos_queue.h"
 #include "rtos_info.h"
 #include "rtos_task.h"
 #include "rtos_port.h"
 
 
 
-extern tcb_t TCBS[NO_OF_TASKS+1];                 //an array of TCB's
+extern tcb_t  TCBS[NO_OF_TASKS+1];                 //an array of TCB's
 extern tcb_t *pcurrent;                           //current pointer to a tcb
-int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
+extern tcb_t* ready_queue[0];
+extern tcb_t* blocked_queue[0];
+int32_t       TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
+
+
 
 
 uint8_t assert(uint8_t condition, char* assert_msg)
@@ -60,19 +65,6 @@ void rtosKernel_StackInit(void)
 }
 
 
-void rtosKernel_TCBInit(void)
-{
-    //Initialize Linked list of the tasks
-    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
-    {
-        //connect to next TCB node
-        if(i<NO_OF_TASKS)
-            TCBS[i].pnext = &(TCBS[i+1]);
-    }
-    TCBS[NO_OF_TASKS].pnext = &(TCBS[0]); //circular linking
-}
-
-
 void rtosKernel_TaskInit(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
@@ -80,9 +72,6 @@ void rtosKernel_TaskInit(void)
 
     //Add Idle Task
     taskAdd_Idle();
-
-    //Initialize the TCB Linked List Structure
-    rtosKernel_TCBInit();
 
     //Initialize the tasks stacks
     rtosKernel_StackInit();
@@ -99,7 +88,12 @@ void rtosKernel_TaskInit(void)
 void rtosKernel_Init()
 {
     __task_count_init();
-    #if SCHEDULER == SCHEDULER_RR_WEIGHTED
+
+    #if SCHEDULER == SCHEDULER_ROUND_ROBIN
+    //initialize the ready queue
+    ready_queue_init();
+    blocked_queue_init();
+    #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
     taskReset_Quota();
     //set first task as running
     pcurrent->task_state = TASK_STATE_RUNNING;
@@ -130,7 +124,12 @@ void rtosKernel_Launch(uint32_t quanta)
     SYSTICK_ENABLE();
 
     //Scheduler Initializations
-    rtosScheduler_Init();
+    //Initialize the first task before Scheduler Launch
+    pcurrent->task_state = TASK_STATE_RUNNING;
+
+    #if SCHEDULER == SCHEDULER_ROUND_ROBIN || SCHEDULER == SCHEDULER_RR_WEIGHTED
+    ready_queue[0] = pcurrent->pnext;
+    #endif
 
     //Launch Scheduler
     rtosScheduler_Launch();
@@ -145,11 +144,24 @@ void rtosScheduler_RoundRobin(void)
     //set task state for finished task (not for idle task)
     if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)
         pcurrent->task_state = TASK_STATE_READY;
+    
+    //if the ready queue is empty before the next context switch, reset it
+    if(ready_queue_check_empty() == 1)
+        ready_queue_reset();
 
-    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    //go through the tasks in the queue
+    if(ready_queue[0] != NULL)
     {
-        //go to next task
-        pcurrent = pcurrent->pnext;
+        //get the task
+        tcb_t* t = ready_queue[0];
+
+        //dequeue
+        ready_queue[0] = t->pnext;
+        t->pnext = NULL;
+
+        //set the new task as current
+        pcurrent = t;
+
         //get its state
         state = pcurrent->task_state;
 
@@ -163,7 +175,7 @@ void rtosScheduler_RoundRobin(void)
 
     //if all the tasks are blocked, run the idle task
     if(state == TASK_STATE_BLOCKED)
-        pcurrent = getIdleTask_TCB();
+        pcurrent = getTask_Idle();
 }
 
 
@@ -199,9 +211,10 @@ void rtosScheduler_RoundRobinWeighted(void)
                 if(pcurrent->task_id == NO_OF_TASKS)
                 {
                     pcurrent = (pcurrent->pnext)->pnext;
+                    //resetting quota as we are at the last task
                     taskReset_Quota();
                 }
-                //else traverse normally
+                //else go to next task normally
                 else pcurrent = pcurrent->pnext;
 
                 //set new task's state as running
@@ -216,19 +229,7 @@ void rtosScheduler_RoundRobinWeighted(void)
     //only when loop finishes
     //if all the tasks are blocked, run the idle task
     if(state == TASK_STATE_BLOCKED)
-        pcurrent = getIdleTask_TCB();
-}
-
-
-
-void rtosScheduler_Init()
-{
-    #if SCHEDULER == SCHEDULER_RR_WEIGHTED
-    //assign weights to quotas
-    taskReset_Quota();
-    //set first task as running
-    pcurrent->task_state = TASK_STATE_RUNNING;
-    #endif
+        pcurrent = getTask_Idle();
 }
 
 

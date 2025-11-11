@@ -6,6 +6,8 @@
 #define DISABLE_IRQ()            __asm("CPSID I")
 #define ENABLE_IRQ()             __asm("CPSIE I")
 
+#define MS_TO_TICK(ms_value)     ((ms_value*TICK_RATE_HZ) + (1000-1)/1000)
+
 
 void rtosKernel_TaskStackInit(uint8_t task_num);
 void rtosKernel_StackInit(void);
