@@ -1,4 +1,5 @@
 #include "rtos_task.h"
+#include "rtos_queue.h"
 #include "rtos_port.h"
 
 tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
@@ -28,7 +29,7 @@ static void taskAdd_Check(uint8_t task_count)
 }
 
 
-void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t* ptask_handle)
+void taskAdd(ptask_t func_ptr, char* task_desc)
 {
     taskAdd_Check(task_count);
 
@@ -38,15 +39,19 @@ void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t* ptask_handle)
     TCBS[task_count].task_id           = task_count;
     TCBS[task_count].task_state        = TASK_STATE_READY;
     TCBS[task_count].task_desc         = task_desc;
+    TCBS[task_count].task_weight       = 0;
     TCBS[task_count].block_tick        = 0;
 
+    //add task to ready queue if its not idle task
+    if(task_count != 0)
+        ready_queue_add(&TCBS[task_count++]);
+
     Serialprintln("Task %d added", INFO, task_count);
-    ptask_handle = &TCBS[task_count++];
 }
 
 
 
-void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t* ptask_handle)
+void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
 {
     taskAdd_Check(task_count);
 
@@ -59,8 +64,11 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tc
     TCBS[task_count].task_weight       = task_weight;
     TCBS[task_count].block_tick        = 0;
 
+    //add task to ready queue if its not idle task
+    if(task_count != 0)
+        ready_queue_add(&TCBS[task_count++]);
+
     Serialprintln("Task %d added", INFO, task_count);
-    ptask_handle = &TCBS[task_count++];
 }
 
 
@@ -156,13 +164,13 @@ tcb_t* getTask_List()
     return TCBS;
 }
 
-tcb_t* getIdleTask_TCB()
+tcb_t* getTask_Idle()
 {
     return &TCBS[0];
 }
 
 
-uint8_t getTaskCount()
+uint8_t getTask_Count()
 {
     return task_count-1;
 }
