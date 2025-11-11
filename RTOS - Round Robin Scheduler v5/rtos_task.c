@@ -9,6 +9,8 @@ static ptask_t ptask_list[NO_OF_TASKS + 1];
 static uint8_t task_count;
 
 extern uint32_t current_tick;
+extern tcb_t* ready_queue[1];
+extern tcb_t* blocked_queue[1];
 
 static void taskAdd_Check(uint8_t task_count);
 
@@ -44,9 +46,9 @@ void taskAdd(ptask_t func_ptr, char* task_desc)
 
     //add task to ready queue if its not idle task
     if(task_count != 0)
-        ready_queue_add(&TCBS[task_count++]);
+        ready_queue_add(&TCBS[task_count]);
 
-    Serialprintln("Task %d added", INFO, task_count);
+    Serialprintln("Task %d added", INFO, task_count++);
 }
 
 
@@ -66,9 +68,9 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
 
     //add task to ready queue if its not idle task
     if(task_count != 0)
-        ready_queue_add(&TCBS[task_count++]);
+        ready_queue_add(&TCBS[task_count]);
 
-    Serialprintln("Task %d added", INFO, task_count);
+    Serialprintln("Task %d added", INFO, task_count++);
 }
 
 
@@ -99,11 +101,11 @@ void taskAdd_Idle()
 
 void taskDelay(uint32_t tick)
 {
-    //for all tasks other than idle task
+    //for all tasks other than idle task (id = 0)
     if(pcurrent->task_id)
     {
         pcurrent->block_tick = current_tick + tick;
-        pcurrent->task_state = TASK_STATE_BLOCKED;
+        blocked_queue_add(pcurrent);
 
         //Pend the systick Exception to switch to next task
         SYSTICK_EXCEPTION_PEND();
@@ -124,15 +126,38 @@ void taskIdle(void)
 
 void taskUnblock(void)
 {
-    tcb_t* temp = pcurrent;
-    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    uint8_t priority;
+    #if SCHEDULER == SCHEDULER_ROUND_ROBIN || SCHEDULER == SCHEDULER_RR_WEIGHTED
+    priority = 0;
+    #elif SCHEDULER == SCHEDULER_PRIORITY
+    priority = TASK_MAX_PRIORITY;
+    #endif
+
+    for(uint8_t i=0; i<=priority; i++)
     {
-        if(temp->task_state == TASK_STATE_BLOCKED)
+        //go through the tasks in the queue
+        if(blocked_queue[i] != NULL)
         {
-            if(temp->block_tick == current_tick)
-                temp->task_state = TASK_STATE_READY;
+            //get the task
+            tcb_t* t = blocked_queue[i];
+
+            //check block tick
+            if(t->task_state == TASK_STATE_BLOCKED)
+            {
+                if(t->block_tick == current_tick)
+                {
+                    t->task_state = TASK_STATE_READY;
+                    t->block_tick = 0;
+
+                    //dequeue
+                    blocked_queue[i] = t->pnext;
+                    t->pnext = NULL;
+
+                    return;
+                }
+            }
+            return;
         }
-        temp = temp->pnext;
     }
 }
 
