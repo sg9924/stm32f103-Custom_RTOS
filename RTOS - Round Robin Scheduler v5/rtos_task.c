@@ -31,7 +31,7 @@ static void taskAdd_Check(uint8_t task_count)
 }
 
 
-void taskAdd(ptask_t func_ptr, char* task_desc)
+void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle)
 {
     taskAdd_Check(task_count);
 
@@ -48,12 +48,15 @@ void taskAdd(ptask_t func_ptr, char* task_desc)
     if(task_count != 0)
         ready_queue_add(&TCBS[task_count]);
 
-    Serialprintln("Task %d added", INFO, task_count++);
+    Serialprintln("Task %d added", INFO, task_count);
+
+    if(ptask_handle != NULL)
+        *ptask_handle = &TCBS[task_count++];
 }
 
 
 
-void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
+void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t** ptask_handle)
 {
     taskAdd_Check(task_count);
 
@@ -70,7 +73,10 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
     if(task_count != 0)
         ready_queue_add(&TCBS[task_count]);
 
-    Serialprintln("Task %d added", INFO, task_count++);
+    Serialprintln("Task %d added", INFO, task_count);
+
+    if(ptask_handle != NULL)
+        *ptask_handle = &TCBS[task_count++];
 }
 
 

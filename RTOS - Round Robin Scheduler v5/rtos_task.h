@@ -30,8 +30,8 @@ typedef struct tcb
 void __task_count_init(void);
 
 void taskIdle(void);
-void taskAdd(ptask_t func_ptr, char* task_desc);
-void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight);
+void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle);
+void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t** ptask_handle);
 void taskAdd_Idle();
 
 
