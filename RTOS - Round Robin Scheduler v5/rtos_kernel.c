@@ -11,8 +11,8 @@
 
 extern tcb_t  TCBS[NO_OF_TASKS+1];                 //an array of TCB's
 extern tcb_t *pcurrent;                           //current pointer to a tcb
-extern tcb_t* ready_queue[0];
-extern tcb_t* blocked_queue[0];
+extern tcb_t* ready_queue[1];
+extern tcb_t* blocked_queue[1];
 int32_t       TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
 
 
