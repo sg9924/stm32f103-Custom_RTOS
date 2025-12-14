@@ -21,6 +21,13 @@
 
 typedef void(*ptask_t)(void);       //task function pointer
 
+typedef struct
+{
+    uint32_t     task_noti_value;                    //notifcation value
+    uint8_t      task_noti_state;                    //notification state
+}task_noti_t;
+
+
 //Task control Block
 //!order of structure members should not be changed!
 typedef struct tcb
@@ -34,8 +41,8 @@ typedef struct tcb
     uint32_t     block_tick;                         //ticks for which the task should be blocked
     uint8_t      task_quota;                         //assigned task weight
     uint8_t      task_weight;                        //task wight for weighted round robin
-    uint32_t     task_noti_value;                    //notification value
-    uint8_t      task_noti_state;                    //notification state
+    uint8_t      task_priority;                      //priority: 0 (highest) to 255 (lowest)
+    task_noti_t  task_noti[TASK_NOTI_MAX_SIZE];      //task notification array
 }tcb_t;
 
 void __task_count_init(void);
