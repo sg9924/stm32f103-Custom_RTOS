@@ -41,6 +41,8 @@ void taskDelay(uint32_t tick);
 void taskUnblock(void);
 void taskYield(void);
 
+void taskBlock(tcb_t* task, uint32_t tick);
+
 ptask_t getTaskFunc(uint8_t task_num);
 ptask_t* getTaskFunc_List();
 

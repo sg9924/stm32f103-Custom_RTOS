@@ -37,21 +37,23 @@ void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle)
 
     ptask_list[task_count]             = func_ptr;
     
-    TCBS[task_count].ptask_func        = func_ptr;
-    TCBS[task_count].task_id           = task_count;
-    TCBS[task_count].task_state        = TASK_STATE_READY;
-    TCBS[task_count].task_desc         = task_desc;
-    TCBS[task_count].task_weight       = 0;
-    TCBS[task_count].block_tick        = 0;
-
     //add task to ready queue if its not idle task
     if(task_count != 0)
+    {
+        TCBS[task_count].ptask_func        = func_ptr;
+        TCBS[task_count].task_id           = task_count;
+        TCBS[task_count].task_state        = TASK_STATE_READY;
+        TCBS[task_count].task_desc         = task_desc;
+        TCBS[task_count].task_weight       = 0;
+        TCBS[task_count].block_tick        = 0;
+
         ready_queue_add(&TCBS[task_count]);
 
-    Serialprintln("Task %d added", INFO, task_count);
+        Serialprintln("Task %d added", INFO, task_count);
 
-    if(ptask_handle != NULL)
-        *ptask_handle = &TCBS[task_count++];
+        if(ptask_handle != NULL)
+            *ptask_handle = &TCBS[task_count++];
+    }
 }
 
 
@@ -62,21 +64,23 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tc
 
     ptask_list[task_count]             = func_ptr;
     
-    TCBS[task_count].ptask_func        = func_ptr;
-    TCBS[task_count].task_id           = task_count;
-    TCBS[task_count].task_state        = TASK_STATE_READY;
-    TCBS[task_count].task_desc         = task_desc;
-    TCBS[task_count].task_weight       = task_weight;
-    TCBS[task_count].block_tick        = 0;
-
     //add task to ready queue if its not idle task
     if(task_count != 0)
+    {
+        TCBS[task_count].ptask_func        = func_ptr;
+        TCBS[task_count].task_id           = task_count;
+        TCBS[task_count].task_state        = TASK_STATE_READY;
+        TCBS[task_count].task_desc         = task_desc;
+        TCBS[task_count].task_weight       = task_weight;
+        TCBS[task_count].block_tick        = 0;
+
         ready_queue_add(&TCBS[task_count]);
 
-    Serialprintln("Task %d added", INFO, task_count);
+        Serialprintln("Task %d added", INFO, task_count);
 
-    if(ptask_handle != NULL)
-        *ptask_handle = &TCBS[task_count++];
+        if(ptask_handle != NULL)
+            *ptask_handle = &TCBS[task_count++];
+    }
 }
 
 
@@ -107,11 +111,24 @@ void taskAdd_Idle()
 
 void taskDelay(uint32_t tick)
 {
-    //for all tasks other than idle task (id = 0)
-    if(pcurrent->task_id)
+    taskBlock(NULL, tick);
+}
+
+
+void taskBlock(tcb_t* task, uint32_t tick)
+{
+    if(task == NULL)
+        task = pcurrent;
+    
+    if(task->task_id != 0 && task->task_state != TASK_STATE_BLOCKED)
     {
-        pcurrent->block_tick = current_tick + tick;
-        blocked_queue_add(pcurrent);
+        task->task_state = TASK_STATE_BLOCKED;
+
+        //set block ticks
+        task->block_tick = current_tick + tick;
+
+        //insert into blocked queue
+        blocked_queue_add(task);
 
         //Pend the systick Exception to switch to next task
         SYSTICK_EXCEPTION_PEND();
@@ -124,7 +141,7 @@ void taskIdle(void)
 {
     while(1)
     {
-        Serialprint("\r\nNo Tasks to run...", INFO);
+        Serialprintln("[Tick: %x] No Tasks to run...", INFO, Systick_get_tick());
     }
 }
 
@@ -132,14 +149,8 @@ void taskIdle(void)
 
 void taskUnblock(void)
 {
-    uint8_t priority;
-    #if SCHEDULER == SCHEDULER_ROUND_ROBIN || SCHEDULER == SCHEDULER_RR_WEIGHTED
-    priority = 0;
-    #elif SCHEDULER == SCHEDULER_PRIORITY
-    priority = TASK_MAX_PRIORITY;
-    #endif
-
-    for(uint8_t i=0; i<=priority; i++)
+    //for round robin, blocked_queue array always has one element only.
+    for(uint8_t i=0; i<=0; i++)
     {
         //go through the tasks in the queue
         if(blocked_queue[i] != NULL)
