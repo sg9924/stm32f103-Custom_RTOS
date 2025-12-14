@@ -6,8 +6,9 @@
 
 #define NO_OF_TASKS                                   3
 #define STACKSIZE                                     200
-#define SCHEDULER                                     SCHEDULER_ROUND_ROBIN
+#define TASK_NOTI_MAX_SIZE                            3
 #define RTOS_SCHEDULER_START_DELAY                    3000
+#define SCHEDULER                                     SCHEDULER_ROUND_ROBIN
 
 
 //Configurations
