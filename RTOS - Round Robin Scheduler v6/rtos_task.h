@@ -9,6 +9,15 @@
 #define TASK_STATE_RUNNING          ('R')
 #define TASK_STATE_BLOCKED          ('B')
 
+//Task Notify Actions
+#define TASK_NOTIFY_ACTION_SET      0
+#define TASK_NOTIFY_ACTION_OR       1
+#define TASK_NOTIFY_ACTION_INC      2
+
+#define TASK_NOTIFY_STATE_NONE      0
+#define TASK_NOTIFY_STATE_PENDING   1
+#define TASK_NOTIFY_STATE_RECEIVED  2
+
 
 typedef void(*ptask_t)(void);       //task function pointer
 
@@ -25,6 +34,8 @@ typedef struct tcb
     uint32_t     block_tick;                         //ticks for which the task should be blocked
     uint8_t      task_quota;                         //assigned task weight
     uint8_t      task_weight;                        //task wight for weighted round robin
+    uint32_t     task_noti_value;                    //notification value
+    uint8_t      task_noti_state;                    //notification state
 }tcb_t;
 
 void __task_count_init(void);
@@ -34,14 +45,14 @@ void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle);
 void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t** ptask_handle);
 void taskAdd_Idle();
 
-
 void taskReset_Quota();
 
 void taskDelay(uint32_t tick);
+void taskBlock(tcb_t* task, uint32_t timeout_tick);
 void taskUnblock(void);
 void taskYield(void);
 
-void taskBlock(tcb_t* task, uint32_t tick);
+
 
 ptask_t getTaskFunc(uint8_t task_num);
 ptask_t* getTaskFunc_List();
@@ -49,5 +60,8 @@ ptask_t* getTaskFunc_List();
 tcb_t* getTask_Idle();
 tcb_t* getTask_List();
 uint8_t getTask_Count();
+
+void taskNotify_Send(tcb_t* task, uint32_t value, uint8_t action);
+uint32_t taskNotify_Wait(uint32_t clear_on_entry_mask, uint32_t clear_on_exit_mask, uint32_t* out, uint32_t timeout_ticks);
 
 #endif

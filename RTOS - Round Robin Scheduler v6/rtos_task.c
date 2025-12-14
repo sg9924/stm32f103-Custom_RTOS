@@ -1,3 +1,4 @@
+#include "rtos_kernel.h"
 #include "rtos_task.h"
 #include "rtos_queue.h"
 #include "rtos_port.h"
@@ -46,6 +47,8 @@ void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle)
         TCBS[task_count].task_desc         = task_desc;
         TCBS[task_count].task_weight       = 0;
         TCBS[task_count].block_tick        = 0;
+        TCBS[task_count].task_noti_state   = TASK_NOTIFY_STATE_NONE;
+        TCBS[task_count].task_noti_value   = 0;
 
         ready_queue_add(&TCBS[task_count]);
 
@@ -73,6 +76,8 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tc
         TCBS[task_count].task_desc         = task_desc;
         TCBS[task_count].task_weight       = task_weight;
         TCBS[task_count].block_tick        = 0;
+        TCBS[task_count].task_noti_state   = TASK_NOTIFY_STATE_NONE;
+        TCBS[task_count].task_noti_value   = 0;
 
         ready_queue_add(&TCBS[task_count]);
 
@@ -115,7 +120,7 @@ void taskDelay(uint32_t tick)
 }
 
 
-void taskBlock(tcb_t* task, uint32_t tick)
+void taskBlock(tcb_t* task, uint32_t timeout_tick)
 {
     if(task == NULL)
         task = pcurrent;
@@ -125,7 +130,7 @@ void taskBlock(tcb_t* task, uint32_t tick)
         task->task_state = TASK_STATE_BLOCKED;
 
         //set block ticks
-        task->block_tick = current_tick + tick;
+        task->block_tick = current_tick + timeout_tick;
 
         //insert into blocked queue
         blocked_queue_add(task);
@@ -215,4 +220,92 @@ tcb_t* getTask_Idle()
 uint8_t getTask_Count()
 {
     return task_count-1;
+}
+
+//Helper
+static void taskBlock_Notify(tcb_t* task, uint32_t tick)
+{
+    taskBlock(task, tick);
+}
+
+
+//Helper
+static uint8_t taskUnblock_Notify(tcb_t* task)
+{
+    if(task->task_id != 0 && task->task_state == TASK_STATE_BLOCKED && task->task_noti_state == TASK_NOTIFY_STATE_PENDING)
+    {
+        blocked_queue_remove(task, TASK_STATE_READY);
+        task->task_noti_state = TASK_NOTIFY_STATE_RECEIVED;
+        task->block_tick = 0;
+        ready_queue_add(task);
+        return 1;
+    }
+
+    return 0;
+}
+
+
+
+void taskNotify_Send(tcb_t* task, uint32_t value, uint8_t action)
+{
+    uint8_t was_blocked = 0;
+    DISABLE_IRQ();
+
+    if(action == TASK_NOTIFY_ACTION_SET) task->task_noti_value = value;
+    else if(action == TASK_NOTIFY_ACTION_OR) task->task_noti_value |= value;
+    else if(action == TASK_NOTIFY_ACTION_INC) task->task_noti_value += 1;
+
+    //if the task was blocked waiting for the notification, it should be unblocked after receiving the notification
+    if(taskUnblock_Notify(task))
+        was_blocked = 1;
+
+    ENABLE_IRQ();
+
+    //if the unblocked task has higher priority, yield now - priority scheduler
+    if(was_blocked)
+    {
+        #if SCHEDULER == SCHEDULER_ROUND_ROBIN || SCHEDULER == SCHEDULER_RR_WEIGHTED
+        ;
+        #elif SCHEDULER == SCHEDULER_PRIORITY
+        //pend systick to run the higher priority task
+        SYSTICK_CLEAR();
+        SYSTICK_EXCEPTION_PEND();
+        #endif
+    }
+}
+
+
+//to complete
+uint32_t taskNotify_Wait(uint32_t clear_on_entry_mask, uint32_t clear_on_exit_mask, uint32_t* out, uint32_t timeout_ticks)
+{
+    tcb_t* current = pcurrent;
+    uint32_t result;
+
+    //entry mask
+    if(clear_on_entry_mask) current->task_noti_value &= ~clear_on_entry_mask;
+
+    //if no notification is pending
+    if(current->task_noti_state == TASK_NOTIFY_STATE_NONE)
+    {
+        current->task_noti_state = TASK_NOTIFY_STATE_PENDING;
+        taskBlock_Notify(pcurrent, timeout_ticks);
+    }
+    
+    //if notification has been received
+    if(current->task_noti_state == TASK_NOTIFY_STATE_RECEIVED)
+    {
+        result = current->task_noti_value;
+        current->task_noti_state = TASK_NOTIFY_STATE_NONE;
+
+        //exit mask
+        if(clear_on_exit_mask) current->task_noti_value &= ~clear_on_exit_mask;
+    }
+    //timed out
+    else
+        result = 0;
+
+    //store the result to the pointer if it has been provided
+    if(out) *out = result;
+
+    return result;
 }
