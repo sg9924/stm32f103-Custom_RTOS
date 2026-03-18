@@ -1,0 +1,8 @@
+initial:
+- basic Priority scheduler
+- only ready queue/list
+- no blocked queue yet
+- task delay -> task blocking using TCB list as reference
+- bugs:
+    - where initial run goes fine, 2nd run is weirdly out of order and then in the subsequent runs it runs as expected
+    - adding taskdelay in all tasks results in the initial run running fine and the delay is not taking effect in subsequent runs which ahould repeat the behaviour of the first run
