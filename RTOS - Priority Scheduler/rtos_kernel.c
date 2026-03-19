@@ -111,6 +111,7 @@ void rtosKernel_TaskStackInit(uint8_t task_num)
 
 
 //TCB List Initialize
+/*
 void rtosKernel_TCBInit(void)
 {
     #if SCHEDULER == SCHEDULER_PRIORITY
@@ -124,6 +125,7 @@ void rtosKernel_TCBInit(void)
     TCBS[NO_OF_TASKS].pnext = &(TCBS[0]); //circular linking
     #endif
 }
+*/
 
 
 
@@ -138,7 +140,7 @@ void rtosKernel_StackInit(void)
 }
 
 
-//Task INitialize
+//Task Initialize
 void rtosKernel_TaskInit(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
@@ -148,7 +150,7 @@ void rtosKernel_TaskInit(void)
     taskAdd_Idle();
 
     //Initialize the TCB Linked List Structure
-    rtosKernel_TCBInit();
+    //rtosKernel_TCBInit();
 
     //Initialize the tasks stacks
     rtosKernel_StackInit();
@@ -317,7 +319,7 @@ __attribute__((naked)) void SysTick_Handler(void)
     //call systick increment
     __asm("BL Systick_Tick_Inc");
     //call task unblock
-    __asm("BL taskUnblock");
+    //__asm("BL taskUnblock");
     //call scheduler
     #if SCHEDULER == SCHEDULER_PRIORITY
     __asm("BL rtosScheduler_Priority");

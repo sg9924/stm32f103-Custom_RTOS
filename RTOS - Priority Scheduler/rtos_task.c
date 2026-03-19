@@ -51,7 +51,7 @@ void taskAdd_Idle()
 }
 
 
-
+/*
 void taskDelay(uint32_t tick)
 {
     //for all tasks other than idle task (id = 0)
@@ -64,6 +64,7 @@ void taskDelay(uint32_t tick)
         SYSTICK_EXCEPTION_PEND();
     }
 }
+*/
 
 
 
@@ -76,7 +77,7 @@ void taskIdle(void)
 }
 
 
-
+/*
 void taskUnblock(void)
 {
     tcb_t* temp = getTask_List();
@@ -91,6 +92,7 @@ void taskUnblock(void)
         temp += 1;
     }
 }
+*/
 
 
 

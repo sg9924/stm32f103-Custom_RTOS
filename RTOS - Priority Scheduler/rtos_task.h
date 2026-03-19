@@ -32,9 +32,9 @@ void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority);
 
 
 void taskReset_Quota();
-void taskDelay(uint32_t tick);
+//void taskDelay(uint32_t tick);
 void taskIdle(void);
-void taskUnblock(void);
+//void taskUnblock(void);
 void taskYield(void);
 
 ptask_t getTaskFunc(uint8_t task_num);
