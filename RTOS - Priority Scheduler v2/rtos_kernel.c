@@ -28,7 +28,11 @@ void ready_queue_init()
 void ready_queue_reset()
 {
     for(uint8_t i=1; i<NO_OF_TASKS+1; i++)
-        add_to_ready_queue(&TCBS[i]);
+    {
+        //if task is not in blocked queue
+        if(check_blocked_queue(&TCBS[i]) != 1)
+            add_to_ready_queue(&TCBS[i]);
+    }
 }
 
 
@@ -89,6 +93,25 @@ uint8_t check_blocked_queue_empty()
             return 0;
     }
     return 1;
+}
+
+
+
+uint8_t check_blocked_queue(tcb_t* task)
+{
+    tcb_t* t;
+    for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
+    {
+        t = blocked_queue[i];
+        while(t != NULL)
+        {
+            if(t == task) return 1;
+            //else break;
+
+            t = t->pnext;
+        }
+    }
+    return 0;
 }
 
 

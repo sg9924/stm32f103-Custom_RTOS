@@ -48,7 +48,7 @@ void task1(void)
     while(1)
     {
         Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] This is Task 1 running...", INFO, Systick_get_tick(), tcb_list[1].task_id, tcb_list[1].task_priority);
-        taskDelay(2);
+        taskDelay(3);
     }
 }
 

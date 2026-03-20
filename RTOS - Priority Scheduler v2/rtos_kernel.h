@@ -26,6 +26,7 @@ void ready_queue_reset();
 
 void blocked_queue_init();
 uint8_t check_blocked_queue_empty();
+uint8_t check_blocked_queue(tcb_t* task);
 void add_to_blocked_queue(tcb_t* task);
 uint8_t remove_from_blocked_queue(tcb_t* task, uint8_t state);
 

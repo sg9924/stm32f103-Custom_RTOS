@@ -57,7 +57,7 @@ void taskAdd_Idle()
 
 void taskDelay(uint32_t timeout_tick)
 {   
-    //task should not be blocked already
+    //task should NOT be blocked already and it should NOT be the idle task
     if(pcurrent->task_id != 0 && pcurrent->task_state != TASK_STATE_BLOCKED)
     {
         //set state as blocked

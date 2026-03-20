@@ -1,4 +1,10 @@
 initial:
     - add blocked queue APIs
-    - task delay API
-    - task unblock API
+    - task delay API: adds block tick = current tick + (tick passed as input)
+    - task unblock API: compares current tick and the bock tick value for the task
+    - Bug: ready queue reset includes tasks which are blocked, blocked tasks are run again in the next hyperperiod after blocking
+        - need to cleanly throw error for this case
+
+2:
+    - modify ready queue reset API to account for tasks in blocked queue
+    - introduce check blocked queue API
