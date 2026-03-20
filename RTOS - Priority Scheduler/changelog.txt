@@ -10,4 +10,4 @@ initial:
 2:
     - remove rtosKernel_TCBInit, taskDelay & taskUnblock API
     - interferes with the ready queue. previous bugs were due to this interference
-    - task delay and task unblock will be introduced with the blocked queue functionality
+    - task delay and task unblock will be introduced later with the blocked queue functionality
