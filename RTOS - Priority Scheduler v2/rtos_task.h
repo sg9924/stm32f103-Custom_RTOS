@@ -31,7 +31,6 @@ void taskAdd_Idle();
 void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority);
 
 
-void taskReset_Quota();
 void taskDelay(uint32_t tick);
 void taskUnblock(void);
 void taskYield(void);
@@ -42,7 +41,6 @@ ptask_t* getTaskFunc_List();
 tcb_t* getTask_Idle();
 tcb_t* getTask_List();
 tcb_t* getTask_Priority(uint8_t priority);
-
 uint8_t getTask_Count();
 
 #endif

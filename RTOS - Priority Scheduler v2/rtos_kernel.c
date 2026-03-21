@@ -32,6 +32,9 @@ static void rtosKernel_StackInit(void);
 static void rtosKernel_TaskInit(void);
 __attribute__((naked)) void rtosScheduler_Launch(void);
 
+
+static void rtosScheduler_Priority();
+
 /****************************************************Ready Queue APIs Start*****************************************************/
 static void ready_queue_init()
 {
@@ -255,12 +258,7 @@ static void rtosKernel_TaskStackInit(uint8_t task_num)
 
     //initialize PC and LR
     TCBS_STACK[task_num][STACKSIZE-2] = (int32_t) (TCBS[task_num].ptask_func); //PC - task function address
-    #if USE_PSP == 0
     TCBS_STACK[task_num][STACKSIZE-3]  = 0xFFFFFFF9;               //LR - Return to Thread mode and use MSP
-    #elif USE_PSP == 1
-    TCBS_STACK[task_num][STACKSIZE-3]  = 0xFFFFFFFD;               //LR - Return to Thread mode and use PSP
-    #endif
-
     //initializing stack with dummy contents for other registers
     for(uint8_t i=4; i<=STACKSIZE; i++)
     {
@@ -289,9 +287,6 @@ static void rtosKernel_TaskInit(void)
 
     //Add Idle Task
     taskAdd_Idle();
-
-    //Initialize the TCB Linked List Structure
-    //rtosKernel_TCBInit();
 
     //Initialize the tasks stacks
     rtosKernel_StackInit();
@@ -338,12 +333,12 @@ void rtosKernel_Launch(uint32_t quanta)
     #endif
 
     //Scheduler Initializations
-    //Initialize the first task before Scheduler Launch
-    pcurrent->task_state = TASK_STATE_RUNNING;
-
     #if SCHEDULER == SCHEDULER_PRIORITY
     ready_queue[pcurrent->task_priority] = pcurrent->pnext;
     #endif
+
+    //Initialize the first task before Scheduler Launch
+    pcurrent->task_state = TASK_STATE_RUNNING;
 
     //Enable Systick Timer
     SYSTICK_ENABLE();
