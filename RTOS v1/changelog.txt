@@ -1,0 +1,7 @@
+initial:
+    - full rtos
+    - 3 separate schedulers: round robin, round robin weighted and priority
+    - scheduler can be set in rtos_config.h
+    - basic task blocking and unblocking via taskDelay() with block tick count
+    - basic semaphore
+    - no Mutex, IPC, Task Notifications yet
