@@ -87,7 +87,7 @@ static void taskIdle(void)
 {
     while(1)
     {
-        Serialprint("[Tick: %d] [ID: %d] [Priority: %d] Idle Task\r\n", INFO, current_tick, TCBS[0].task_id, TCBS[0].task_priority);
+        Serialprint("[Tick: %x] [ID: %d] [Priority: %d] Idle Task\r\n", INFO, current_tick, TCBS[0].task_id, TCBS[0].task_priority);
     }
 }
 

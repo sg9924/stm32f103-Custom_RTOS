@@ -13,5 +13,5 @@ initial:
     - expose only necessary functions
     - cleanup in task and kernel files
     - use static for internal functions
-    - unifor queue function naming
+    - uniform queue functions naming
     - modify idle task definition
