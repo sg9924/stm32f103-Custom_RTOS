@@ -2,15 +2,19 @@
 #include "rtos_kernel.h"
 #include "rtos_port.h"
 
+
+//external variables
+extern uint32_t current_tick;
+extern tcb_t* ready_queue[TASK_MAX_PRIORITY];
+extern tcb_t* blocked_queue[TASK_MAX_PRIORITY];
+
 tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
 
 static ptask_t ptask_list[NO_OF_TASKS + 1];
 static uint8_t task_count;
 
-extern uint32_t current_tick;
-extern tcb_t* ready_queue[TASK_MAX_PRIORITY];
-extern tcb_t* blocked_queue[TASK_MAX_PRIORITY];
+
 
 void __task_count_init(void)
 {
@@ -75,12 +79,12 @@ void taskDelay(uint32_t timeout_tick)
 }
 
 
-
+//Idle Task Definition
 void taskIdle(void)
 {
     while(1)
     {
-        Serialprint("No Tasks to run...\r\n", INFO);
+        Serialprint("[Tick: %d] [ID: %d] [Priority: %d] Idle Task\r\n", INFO, current_tick, TCBS[0].task_id, TCBS[0].task_priority);
     }
 }
 
@@ -159,7 +163,7 @@ tcb_t* getTask_Idle()
 }
 
 
-uint8_t getTaskCount()
+uint8_t getTask_Count()
 {
     return task_count-1;
 }

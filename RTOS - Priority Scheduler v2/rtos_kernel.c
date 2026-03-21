@@ -7,17 +7,17 @@
 #include "rtos_port.h"
 
 
-
+//external variables
 extern tcb_t TCBS[NO_OF_TASKS+1];                 //an array of TCB's
 extern tcb_t *pcurrent;                           //current pointer to a tcb
+
+
 int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
-
-//ready and blocked queues for tasks with priority - one linked list per priority
-tcb_t* ready_queue[TASK_MAX_PRIORITY];
-tcb_t* blocked_queue[TASK_MAX_PRIORITY];
+tcb_t* ready_queue[TASK_MAX_PRIORITY];            //ready queues for each priority
+tcb_t* blocked_queue[TASK_MAX_PRIORITY];          //blocked queues for each priority
 
 
-//Ready Queue APIs
+/****************************************************Ready Queue APIs Start*****************************************************/
 void ready_queue_init()
 {
     for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
@@ -72,11 +72,9 @@ void add_to_ready_queue(tcb_t* task)
         i->pnext = task;
     }
 }
+/****************************************************Ready Queue APIs End*******************************************************/
 
-
-
-
-//Blocked Queue APIs
+/***************************************************Blocked Queue APIs Start****************************************************/
 void blocked_queue_init()
 {
     for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
@@ -179,10 +177,7 @@ uint8_t remove_from_blocked_queue(tcb_t* task, uint8_t state)
     }
     return 0;
 }
-
-
-
-
+/**************************************************Blocked Queue APIs End***************************************************/
 //Assert
 uint8_t assert(uint8_t condition, char* assert_msg)
 {
@@ -196,8 +191,7 @@ uint8_t assert(uint8_t condition, char* assert_msg)
     else //assert succeeded
         return 1;
 }
-
-
+/*******************************************************Kernel APIs Start****************************************************/
 //Task Stack Initialize
 void rtosKernel_TaskStackInit(uint8_t task_num)
 {
@@ -305,10 +299,9 @@ void rtosKernel_Launch(uint32_t quanta)
     //Launch Scheduler
     rtosScheduler_Launch();
 }
+/*******************************************************Kernel APIs End****************************************************/
 
-
-
-
+/*****************************************************Scheduler APIs Start*************************************************/
 void rtosScheduler_Priority()
 {
     int8_t state = TASK_STATE_BLOCKED;
@@ -389,6 +382,8 @@ __attribute__((naked)) void rtosScheduler_Launch(void)
     //go to the task
     __asm("BX LR");
 }
+/*****************************************************Scheduler APIs End*************************************************/
+
 
 
 //Systick IRQ Handler
