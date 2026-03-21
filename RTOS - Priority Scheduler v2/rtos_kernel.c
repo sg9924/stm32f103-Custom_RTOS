@@ -17,26 +17,41 @@ tcb_t* ready_queue[TASK_MAX_PRIORITY];            //ready queues for each priori
 tcb_t* blocked_queue[TASK_MAX_PRIORITY];          //blocked queues for each priority
 
 
+
+static void ready_queue_init();
+static void ready_queue_reset();
+static uint8_t ready_queue_check_empty();
+
+static void blocked_queue_init();
+static uint8_t blocked_queue_check_empty();
+static uint8_t blocked_queue_check(tcb_t* task);
+
+
+static void rtosKernel_TaskStackInit(uint8_t task_num);
+static void rtosKernel_StackInit(void);
+static void rtosKernel_TaskInit(void);
+__attribute__((naked)) void rtosScheduler_Launch(void);
+
 /****************************************************Ready Queue APIs Start*****************************************************/
-void ready_queue_init()
+static void ready_queue_init()
 {
     for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
         ready_queue[i] = NULL;
 }
 
 
-void ready_queue_reset()
+static void ready_queue_reset()
 {
     for(uint8_t i=1; i<NO_OF_TASKS+1; i++)
     {
         //if task is not in blocked queue
-        if(check_blocked_queue(&TCBS[i]) != 1)
-            add_to_ready_queue(&TCBS[i]);
+        if(blocked_queue_check(&TCBS[i]) != 1)
+            ready_queue_add(&TCBS[i]);
     }
 }
 
 
-uint8_t check_ready_queue_empty()
+static uint8_t ready_queue_check_empty()
 {
     for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
     {
@@ -49,7 +64,7 @@ uint8_t check_ready_queue_empty()
 }
 
 
-void add_to_ready_queue(tcb_t* task)
+void ready_queue_add(tcb_t* task)
 {
     //get priority of task
     uint8_t priority = task->task_priority;
@@ -72,16 +87,53 @@ void add_to_ready_queue(tcb_t* task)
         i->pnext = task;
     }
 }
+
+
+uint8_t ready_queue_remove(tcb_t* task, uint8_t state)
+{
+    #if SCHEDULER == SCHEDULER_PRIORITY
+        uint8_t priority = task->task_priority;
+    #endif
+
+    if(ready_queue[priority] != NULL)
+    {
+        //get the starting task of the specific priority
+        tcb_t* i = ready_queue[priority];
+
+        //starting task of queue matches
+        if(i == task)
+        {
+            i->task_state = state;
+            blocked_queue[priority] = i->pnext;
+        }
+        //first task didn't match
+        else
+        {   
+            //iterate
+            while(i->pnext != NULL)
+            {
+                if(i->pnext == task)
+                {
+                    (i->pnext)->task_state = state;
+                    i = (i->pnext)->pnext;
+                    return 1;
+                }
+                i = i->pnext;
+            }
+        }
+    }
+    return 0;
+}
 /****************************************************Ready Queue APIs End*******************************************************/
 
 /***************************************************Blocked Queue APIs Start****************************************************/
-void blocked_queue_init()
+static void blocked_queue_init()
 {
     for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
         blocked_queue[i] = NULL;
 }
 
-uint8_t check_blocked_queue_empty()
+static uint8_t blocked_queue_check_empty()
 {
     for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
     {
@@ -95,7 +147,7 @@ uint8_t check_blocked_queue_empty()
 
 
 
-uint8_t check_blocked_queue(tcb_t* task)
+static uint8_t blocked_queue_check(tcb_t* task)
 {
     tcb_t* t;
     for(uint8_t i=0; i<TASK_MAX_PRIORITY; i++)
@@ -114,7 +166,7 @@ uint8_t check_blocked_queue(tcb_t* task)
 
 
 
-void add_to_blocked_queue(tcb_t* task)
+void blocked_queue_add(tcb_t* task)
 {
     //get priority of task
     uint8_t priority = task->task_priority;
@@ -140,7 +192,7 @@ void add_to_blocked_queue(tcb_t* task)
 
 
 
-uint8_t remove_from_blocked_queue(tcb_t* task, uint8_t state)
+uint8_t blocked_queue_remove(tcb_t* task, uint8_t state)
 {
     #if SCHEDULER == SCHEDULER_PRIORITY
         uint8_t priority = task->task_priority;
@@ -193,7 +245,7 @@ uint8_t assert(uint8_t condition, char* assert_msg)
 }
 /*******************************************************Kernel APIs Start****************************************************/
 //Task Stack Initialize
-void rtosKernel_TaskStackInit(uint8_t task_num)
+static void rtosKernel_TaskStackInit(uint8_t task_num)
 {
     //initialize stack pointer
     TCBS[task_num].pstack = &(TCBS_STACK[task_num][STACKSIZE-16]);
@@ -219,7 +271,7 @@ void rtosKernel_TaskStackInit(uint8_t task_num)
 
 
 //Kernel Stack Initialize
-void rtosKernel_StackInit(void)
+static void rtosKernel_StackInit(void)
 {
     //initialize the stack of each task
     for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
@@ -230,7 +282,7 @@ void rtosKernel_StackInit(void)
 
 
 //Task Initialize
-void rtosKernel_TaskInit(void)
+static void rtosKernel_TaskInit(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
     DISABLE_IRQ();
@@ -302,7 +354,7 @@ void rtosKernel_Launch(uint32_t quanta)
 /*******************************************************Kernel APIs End****************************************************/
 
 /*****************************************************Scheduler APIs Start*************************************************/
-void rtosScheduler_Priority()
+static void rtosScheduler_Priority()
 {
     int8_t state = TASK_STATE_BLOCKED;
 
@@ -311,7 +363,7 @@ void rtosScheduler_Priority()
         pcurrent->task_state = TASK_STATE_READY;
 
     //if the ready queue is empty before the next context switch, reset it
-    if(check_ready_queue_empty() == 1)
+    if(ready_queue_check_empty() == 1)
         ready_queue_reset();
 
     //loop through the queues starting with the highest priority (0) one

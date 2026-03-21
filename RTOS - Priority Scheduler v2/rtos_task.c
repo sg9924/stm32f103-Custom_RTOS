@@ -14,6 +14,9 @@ tcb_t *pcurrent;            //current pointer to a tcb
 static ptask_t ptask_list[NO_OF_TASKS + 1];
 static uint8_t task_count;
 
+static void taskIdle(void);
+
+
 
 
 void __task_count_init(void)
@@ -40,7 +43,7 @@ void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority)
     TCBS[task_count].task_desc           = task_desc;
     TCBS[task_count].task_priority       = task_priority;
     TCBS[task_count].block_tick          = 0;
-    add_to_ready_queue(&TCBS[task_count]);
+    ready_queue_add(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
     task_count++;
@@ -71,7 +74,7 @@ void taskDelay(uint32_t timeout_tick)
         pcurrent->block_tick = current_tick + timeout_tick;
 
         //insert into blocked queue
-        add_to_blocked_queue(pcurrent);
+        blocked_queue_add(pcurrent);
 
         //Pend the systick Exception to switch to next task
         SYSTICK_EXCEPTION_PEND();
@@ -80,7 +83,7 @@ void taskDelay(uint32_t timeout_tick)
 
 
 //Idle Task Definition
-void taskIdle(void)
+static void taskIdle(void)
 {
     while(1)
     {

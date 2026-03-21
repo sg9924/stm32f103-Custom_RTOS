@@ -14,8 +14,13 @@
 void rtosKernel_Init();
 void rtosKernel_Launch(uint32_t quanta);
 
-
 uint8_t assert(uint8_t condition, char* assert_msg);
+
+void ready_queue_add(tcb_t* task);
+uint8_t ready_queue_remove(tcb_t* task, uint8_t state);
+
+void blocked_queue_add(tcb_t* task);
+uint8_t blocked_queue_remove(tcb_t* task, uint8_t state);
 
 
 
