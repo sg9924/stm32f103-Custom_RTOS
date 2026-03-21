@@ -8,3 +8,10 @@ initial:
 2:
     - modify ready queue reset API to account for tasks in blocked queue
     - introduce check blocked queue API
+
+3:
+    - expose only necessary functions
+    - cleanup in task and kernel files
+    - use static for internal functions
+    - unifor queue function naming
+    - modify idle task definition
