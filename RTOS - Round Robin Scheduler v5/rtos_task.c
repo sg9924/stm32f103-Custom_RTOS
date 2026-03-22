@@ -150,32 +150,40 @@ void taskIdle(void)
 void taskUnblock(void)
 {
     //for round robin, blocked_queue array always has one element only.
-    for(uint8_t i=0; i<=0; i++)
+    tcb_t* t = blocked_queue[0];
+    tcb_t* tprev = NULL;
+
+    //go through the tasks in the queue
+    while(t != NULL)
     {
-        //go through the tasks in the queue
-        if(blocked_queue[i] != NULL)
+        //check block tick
+        if(t->task_state == TASK_STATE_BLOCKED && t->block_tick == current_tick)
         {
-            //get the task
-            tcb_t* t = blocked_queue[i];
+            tcb_t* tnext = t->pnext;
 
-            //check block tick
-            if(t->task_state == TASK_STATE_BLOCKED)
-            {
-                if(t->block_tick == current_tick)
-                {
-                    t->task_state = TASK_STATE_READY;
-                    t->block_tick = 0;
+            //remove from blocked queue
+            //remove head
+            if(tprev == NULL)
+                blocked_queue[0] = tnext;
+            //remove middle or last
+            else
+                tprev->pnext = tnext;
 
-                    //dequeue
-                    blocked_queue[i] = t->pnext;
-                    t->pnext = NULL;
-
-                    return;
-                }
-            }
-            return;
+            //set task as ready
+            t->task_state = TASK_STATE_READY;
+            t->block_tick = 0;
+            t->pnext      = NULL;
+            
+            t = tnext;
+        }
+        //just traverse to next task
+        else
+        {
+            tprev = t;
+            t = t->pnext;
         }
     }
+    return;
 }
 
 
