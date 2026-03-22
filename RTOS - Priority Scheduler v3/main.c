@@ -63,9 +63,4 @@ int main(void)
 
     //Launch Kernel
     rtosKernel_Launch(TASK_QUANTA_MS);
-
-    while(1)
-    {
-
-    }
 }

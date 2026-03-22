@@ -18,7 +18,6 @@
 //1 - enabled
 
 #define INFO_PRINT                                    1
-#define IDLE_TASK_CALLBACK                            0
 
 
 

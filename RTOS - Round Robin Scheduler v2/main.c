@@ -36,7 +36,6 @@ void task3(void)
 int main(void)
 {
     board_init();
-
     __task_count_init();
 
     //Add the tasks
@@ -46,9 +45,4 @@ int main(void)
 
     //Launch Kernel
     rtosKernel_Launch(TASK_QUANTA_MS);
-
-    while(1)
-    {
-
-    }
 }
