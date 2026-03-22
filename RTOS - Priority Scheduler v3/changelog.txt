@@ -1,2 +1,5 @@
 initial:
     - adding task block API
+
+2:
+    - adding direct task notifications
