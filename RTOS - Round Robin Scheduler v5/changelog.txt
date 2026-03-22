@@ -1,0 +1,11 @@
+1: INITIAL
+
+2: BUG FIXES
+    - task unblock bug fix
+    - bug:
+        - worked only for one blocked task
+            - essentially handled only the head task in queue, for more than 1 blocked task, all of them are unblocked if one was to be unblocked
+        - upon encountering one blocked task, it unblocks it and immediately returns without checking the rest of the queue for other blocked tasks
+    - bug fixes:
+        - logic fixed to handle both head and middle or last node in queue scenarios
+        - return has been removed and placed outside the loop
