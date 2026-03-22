@@ -107,37 +107,53 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
 
 void taskUnblock(void)
 {
-    uint8_t priority;
+    uint8_t priority, yield = 0;
     #if SCHEDULER == SCHEDULER_PRIORITY
     priority = TASK_MAX_PRIORITY;
     #endif
 
-    //iterate through each priority from highest to lowest
+    //iterate through each pirority from highest to lowest
     for(uint8_t i=0; i<priority; i++)
     {
         //get the starting task of the priority
         tcb_t* t = blocked_queue[i];
+        tcb_t* tprev = NULL;
 
         //go through the tasks in the queue
         while(t != NULL)
         {
-            //if task is blocked, check block tick
+            //check block tick
             if(t->task_state == TASK_STATE_BLOCKED && t->block_tick == current_tick)
             {
-                //if block tick matches current tick, block duration is over
+                tcb_t* tnext = t->pnext;
+
+                //remove from blocked queue
+                //remove head
+                if(tprev == NULL)
+                    blocked_queue[i] = tnext;
+                //remove middle or last
+                else
+                    tprev->pnext = tnext;
+
                 //set task as ready
                 t->task_state = TASK_STATE_READY;
                 t->block_tick = 0;
+                t->pnext      = NULL;
 
-                //remove from blocked queue
-                blocked_queue[i] = t->pnext;
-                t->pnext = NULL;
-
-                return;
+                //compare the priorities of the unblocked task and current task
+                if(t->task_priority > pcurrent->task_priority)
+                    yield = 1;
+                
+                t = tnext;
             }
-            t = t->pnext;
+            else
+            {
+                tprev = t;
+                t = t->pnext;
+            }
         }
     }
+    if(yield) taskYield();
     return;
 }
 
