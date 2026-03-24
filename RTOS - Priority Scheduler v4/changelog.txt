@@ -1,0 +1,9 @@
+1: NEW FEATURES
+    - introduce memory management operation APIs
+        - xmemset
+        - xmemcopy
+        - xmemmove
+    - add Static Queue APIs
+        - queueCreateStatic
+        - queueAdd
+        - queueRemove
