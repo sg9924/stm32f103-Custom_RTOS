@@ -40,10 +40,23 @@ typedef struct
 
 
 Queue_t* queueCreateStatic(size_t element_size, size_t length, Queue_t* q, uint8_t* buffer);
-bool queueDestroy(Queue_t* q);
 
 bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick);
 bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick);
+
+bool queuePeek(Queue_t* q, void* out);
+bool queueIsFull(Queue_t *q);
+bool queueIsEmpty(Queue_t *q);
+
+uint32_t queueBufferAddr(Queue_t* q, uint32_t index);
+
+
+
+
+
+//Macros
+
+#define _QUEUE_BUFFER_ADDR(Q_PTR, INDEX)                             ((uint32_t)(Q_PTR)->buffer + ((INDEX) * (Q_PTR)->element_size))
 
 
 #endif

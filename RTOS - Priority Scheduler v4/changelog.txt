@@ -7,3 +7,14 @@
         - queueCreateStatic
         - queueAdd
         - queueRemove
+
+2: ADDITIONAL APIs + BUG FIXES
+    - Queue
+        - queuePeek
+        - queueIsFull
+        - queueIsEmpty
+        - queueBufferAddr
+    - Bugs:
+        - Buffer address in queueAdd and queueRemove were being calculated incorrectly
+    - Bug Fix:
+        - Queue Buffer Address calculation macro has been introduced

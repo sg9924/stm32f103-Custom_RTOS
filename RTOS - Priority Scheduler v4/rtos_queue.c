@@ -24,7 +24,8 @@ static bool queueAdd(Queue_t* q, const void* data)
 {
     if(!q || !data) return false;
 
-    uint8_t* dest = q->buffer + (q->rear * q->element_size);
+    //uint8_t* dest = q->buffer + (q->rear * q->element_size);
+    uint8_t* dest = (uint8_t*) (_QUEUE_BUFFER_ADDR(q, q->rear));
     xmemcopy(dest, (void*)data, q->element_size);
     q->rear = (q->rear + 1) % q->max_length;
     q->cur_length++;
@@ -38,7 +39,8 @@ static bool queueRemove(Queue_t* q, void* out)
 {
     if(!q) return false;
     
-    uint8_t* source = q->buffer + (q->front * q->element_size);
+    //uint8_t* source = q->buffer + (q->front * q->element_size);
+    uint8_t* source = (uint8_t*) (_QUEUE_BUFFER_ADDR(q, q->front));
     xmemcopy(out, source, q->element_size);
     q->front = (q->front + 1) % q->max_length;
     q->cur_length--;
@@ -286,5 +288,43 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
         ENABLE_IRQ();
         return false;
     }
+}
+
+bool queuePeek(Queue_t* q, void* out)
+{
+    if(!q) return false;
+
+    if(out) xmemcopy(out, (void*)(_QUEUE_BUFFER_ADDR(q, q->front)), q->element_size);
+    else return false;
+
+    return true;
+}
+
+
+
+bool queueIsFull(Queue_t *q)
+{
+    if(!q) return false;
+    else if(q->cur_length == q->max_length) return true;
+    return false;
+}
+
+
+
+bool queueIsEmpty(Queue_t *q)
+{
+    if(!q) return false;
+    else if(q->cur_length == 0) return true;
+    return false;
+}
+
+
+uint32_t queueBufferAddr(Queue_t* q, uint32_t index)
+{
+    if(!q) return -1;
+    else if(index == 0)
+        return (_QUEUE_BUFFER_ADDR(q, q->front));
+    else
+        return (_QUEUE_BUFFER_ADDR(q, index));
 }
 /**************************************************************Queue APIs END*************************************************************/

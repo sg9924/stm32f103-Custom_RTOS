@@ -22,35 +22,37 @@ void task1(void)
         {
             //get the data and yield
             Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Consumer] Received %d", INFO, Systick_get_tick(), tcb_list[1].task_id, tcb_list[1].task_priority, r);
-            taskYield();
+            //taskYield();
         }
         else
-            Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Consumer] Not able to recieve data from queue...", INFO);
+            Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Consumer] Not able to receive data from queue...", INFO);
     }
 }
 
-void task2(void)
+void task3(void)
 {
+    uint8_t peek_value;
     while(1)
     {
-        Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Monitor] Queue Front: %d, Queue Rear: %d", INFO, Systick_get_tick(), tcb_list[2].task_id, tcb_list[2].task_priority, q.front, q.rear);
+        queuePeek(&q, (void*)&peek_value);
+        Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Monitor] Queue Front: %d, Queue Rear: %d, Queue Peek: %d, Buffer Base Addr: %x, Buffer Current Addr: %x", INFO, Systick_get_tick(), tcb_list[3].task_id, tcb_list[3].task_priority, q.front, q.rear, peek_value, q.buffer, queueBufferAddr(&q, 0));
         taskYield();
     }
 }
 
 
-void task3(void)
+void task2(void)
 {
     uint8_t v = 0;
     while(1)
     {
         v++;
-        Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Producer] Sending %d]", INFO, Systick_get_tick(), tcb_list[3].task_id, tcb_list[3].task_priority, v);
+        Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Producer] Sending %d]", INFO, Systick_get_tick(), tcb_list[2].task_id, tcb_list[2].task_priority, v);
 
         if(queueSend(&q, &v, 10) == true)
-            Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Producer] Sent %d", INFO, Systick_get_tick(), tcb_list[3].task_id, tcb_list[3].task_priority, v);
+            Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Producer] Sent %d", INFO, Systick_get_tick(), tcb_list[2].task_id, tcb_list[2].task_priority,v);
         else
-            Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Producer] Not able to send %d...", INFO, Systick_get_tick(), tcb_list[3].task_id, tcb_list[3].task_priority, v);
+            Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] [Producer] Not able to send %d...", INFO, Systick_get_tick(), tcb_list[2].task_id, tcb_list[2].task_priority, v);
         tim_delay_ms(2000);
     }
 }
@@ -75,9 +77,9 @@ int main(void)
         Serialprintln("[main] Static Queue was not created successfully...", FATAL);
 
     //Lower numbers are higher priority
-    taskAdd_Priority(&task1, "Task 1", 0);
-    taskAdd_Priority(&task2, "Task 2", 1);
-    taskAdd_Priority(&task3, "Task 3", 2);
+    taskAdd_Priority(&task1, "T1 - Consumer", 0);
+    taskAdd_Priority(&task2, "T2 - Producer", 1);
+    taskAdd_Priority(&task3, "T3 - Monitor", 2);
 
     tcb_list = getTask_List();
 
