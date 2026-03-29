@@ -5,8 +5,8 @@
 
 //external variables
 extern uint32_t current_tick;
-extern tcb_t* ready_queue[TASK_MAX_PRIORITY];
-extern tcb_t* blocked_queue[TASK_MAX_PRIORITY];
+extern tcb_t* ready_queue[MAX_NO_OF_PRIORITY];
+extern tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];
 
 tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
@@ -57,7 +57,7 @@ void taskAdd_Idle()
     TCBS[0].ptask_func    = &taskIdle;
     TCBS[0].task_desc     = "Idle Task";
     TCBS[0].task_id       = 0;
-    TCBS[0].task_priority = TASK_MAX_PRIORITY; //lowest priority
+    TCBS[0].task_priority = MAX_NO_OF_PRIORITY-1; //lowest priority
 }
 
 
@@ -67,7 +67,9 @@ static void taskIdle(void)
 {
     while(1)
     {
+        #if IDLE_TASK_PRINT == 1
         Serialprint("[Tick: %x] [ID: %d] [Priority: %d] Idle Task\r\n", INFO, current_tick, TCBS[0].task_id, TCBS[0].task_priority);
+        #endif
     }
 }
 
@@ -98,7 +100,6 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
         blocked_queue_add(task);
 
         //Pend the systick Exception to switch to next task
-        //this is basically task yield
         SYSTICK_EXCEPTION_PEND();
     }
 }
@@ -109,10 +110,10 @@ void taskUnblock(void)
 {
     uint8_t priority, yield = 0;
     #if SCHEDULER == SCHEDULER_PRIORITY
-    priority = TASK_MAX_PRIORITY;
+    priority = MAX_NO_OF_PRIORITY;
     #endif
 
-    //iterate through each pirority from highest to lowest
+    //iterate through each priority from highest to lowest
     for(uint8_t i=0; i<priority; i++)
     {
         //get the starting task of the priority
@@ -135,10 +136,10 @@ void taskUnblock(void)
                 else
                     tprev->pnext = tnext;
 
-                //set task as ready
-                t->task_state = TASK_STATE_READY;
+                //add to ready queue
                 t->block_tick = 0;
                 t->pnext      = NULL;
+                ready_queue_add(t);
 
                 //compare the priorities of the unblocked task and current task
                 if(t->task_priority > pcurrent->task_priority)
