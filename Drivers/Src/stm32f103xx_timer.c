@@ -1,4 +1,5 @@
 #include"stm32f103xx_timer.h"
+#include"stm32f103xx_rcc.h"
 
 
 void TIM_PClk_init(TIM_Handle* pTIMHandle, uint8_t mode)
@@ -60,25 +61,31 @@ void TIM_Base_init(TIM_Handle* pTIMHandle)
         pTIMHandle->pTIMx->CR1 &= ~(1<<TIM_CR1_DIR); //default direction
     
     //configure prescale value
-    TIM_Prescaler_Load(pTIMHandle, pTIMHandle->TIMx_Base_Config.prescale_value);
+    TIM_PSC_LOAD(pTIMHandle->pTIMx, pTIMHandle->TIMx_Base_Config.prescale_value);
+    //TIM_Prescaler_Load(pTIMHandle, pTIMHandle->TIMx_Base_Config.prescale_value);
 
     //configure auto reload value
-    TIM_AutoReload_Load(pTIMHandle, pTIMHandle->TIMx_Base_Config.autoreload_value);
+    TIM_ARR_LOAD(pTIMHandle->pTIMx, pTIMHandle->TIMx_Base_Config.autoreload_value);
+    //TIM_AutoReload_Load(pTIMHandle, pTIMHandle->TIMx_Base_Config.autoreload_value);
 
     //configure auto reload preload type
     if(pTIMHandle->TIMx_Base_Config.ar_preload == TIM_AR_PRELOAD_ENABLE)
-        pTIMHandle->pTIMx->CR1 |= 1<<TIM_CR1_ARPE;
+        TIM_ARPE_SET(pTIMHandle->pTIMx);
+        //pTIMHandle->pTIMx->CR1 |= 1<<TIM_CR1_ARPE;
     else if(pTIMHandle->TIMx_Base_Config.ar_preload == TIM_AR_PRELOAD_DISABLE)
-        pTIMHandle->pTIMx->CR1 &= ~(1<<TIM_CR1_ARPE);
+        TIM_ARPE_CLEAR(pTIMHandle->pTIMx);
+        //pTIMHandle->pTIMx->CR1 &= ~(1<<TIM_CR1_ARPE);
     
     //configure for only Overflow/underflow
     pTIMHandle->pTIMx->CR1 |= 1<<TIM_CR1_URS;
 
     //update shadow registers
-    TIM_Shadow_Reg_Update(pTIMHandle);
+    TIM_SHADOW_UPDATE(pTIMHandle->pTIMx);
+    //TIM_Shadow_Reg_Update(pTIMHandle);
 
     //clear status flags
-    TIM_Status_Clear(pTIMHandle, (1<<TIM_SR_CC1IF | 1<<TIM_SR_CC2IF | 1<<TIM_SR_CC3IF | 1<<TIM_SR_CC4IF | 1<<TIM_SR_UIF));
+    TIM_STATUS_CLEAR(pTIMHandle->pTIMx, (1<<TIM_SR_CC1IF | 1<<TIM_SR_CC2IF | 1<<TIM_SR_CC3IF | 1<<TIM_SR_CC4IF | 1<<TIM_SR_UIF));
+    //TIM_Status_Clear(pTIMHandle, (1<<TIM_SR_CC1IF | 1<<TIM_SR_CC2IF | 1<<TIM_SR_CC3IF | 1<<TIM_SR_CC4IF | 1<<TIM_SR_UIF));
 }
 
 
@@ -92,7 +99,7 @@ void TIM_OC_Configure(TIM_Handle* pTIMHandle, TIM_OC_Handle* pTIMOCHandle, uint8
     pTIMOCHandle->TIMx_OC_Config.oc_preload       = oc_preload;
     pTIMOCHandle->TIMx_OC_Config.oc_mode          = oc_mode;
     pTIMOCHandle->TIMx_OC_Config.oc_polarity      = oc_polarity;
-    pTIMOCHandle->TIMx_OC_Config.oc_value         = oc_value;
+    //pTIMOCHandle->TIMx_OC_Config.oc_value         = oc_value;
 }
 
 
@@ -103,32 +110,40 @@ void TIM_OC_Channel_init(TIM_OC_Handle* pTIMOCHandle)
     uint8_t mode            = pTIMOCHandle->TIMx_OC_Config.oc_mode;
     uint8_t polarity        = pTIMOCHandle->TIMx_OC_Config.oc_polarity;
 
-    uint8_t word_offset     = channel/2;
-    uint8_t ch_bit_offset   = (channel%2)*8;
-    uint8_t mode_bit_offset = (channel%2)?4:12;
-    uint8_t pol_bit_offset  = 1+(channel*4);
+    //uint8_t word_offset     = channel/2;
+    //uint8_t ch_bit_offset   = (channel%2)*8;
+    //uint8_t mode_bit_offset = (channel%2)?4:12;
+    //uint8_t pol_bit_offset  = 1+(channel*4);
 
     //set channel as output
-    pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= ~(1<<ch_bit_offset);
+    TIM_OC_CC_SEL_CLEAR(pTIMOCHandle->pTIMHandle->pTIMx, channel);
+    //pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= ~(1<<ch_bit_offset);
 
-    //set oc mode
+    //Set OC Mode
     if(mode == TIM_OC_MODE_FROZEN)
-        pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= ~(1<<mode_bit_offset);
+        TIM_OC_MODE_CLEAR(pTIMOCHandle->pTIMHandle->pTIMx, channel);
+        //pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= ~(1<<mode_bit_offset);
     else 
-        pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= 1<<mode_bit_offset;
+        TIM_OC_MODE_CONFIG(pTIMOCHandle->pTIMHandle->pTIMx, channel, mode);
+        //pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= 1<<mode_bit_offset;
 
-    //set oc polarity
+    //Set OC Polarity
     if(polarity == TIM_OC_POL_ACTIVE_HIGH)
-        pTIMOCHandle->pTIMHandle->pTIMx->CCER |= ~(1<<pol_bit_offset);
+        TIM_OC_POL_SET_ACTIVE_HIGH(pTIMOCHandle->pTIMHandle->pTIMx, channel);
     else if(polarity == TIM_OC_POL_ACTIVE_LOW)
-        pTIMOCHandle->pTIMHandle->pTIMx->CCER |= 1<<pol_bit_offset;
+        TIM_OC_POL_SET_ACTIVE_LOW(pTIMOCHandle->pTIMHandle->pTIMx, channel);
 
-    //oc preload enable
-    pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= 1<<((channel%2)?3:11);
+    //OC Preload Enable
+    TIM_OC_PRELOAD_SET(pTIMOCHandle->pTIMHandle->pTIMx, channel);
+    //pTIMOCHandle->pTIMHandle->pTIMx->CCMR[word_offset] |= 1<<((channel%2)?3:11);
 
     //trigger update event to load registers for preload enable
     if(pTIMOCHandle->TIMx_OC_Config.oc_preload == TIM_OC_PRELOAD_ENABLE || pTIMOCHandle->pTIMHandle->TIMx_Base_Config.ar_preload == TIM_AR_PRELOAD_ENABLE)
-        TIM_Update_Event_Trigger(pTIMOCHandle->pTIMHandle);
+        TIM_GEN_UPDATE_EVENT(pTIMOCHandle->pTIMHandle->pTIMx, channel);  
+        //TIM_Update_Event_Trigger(pTIMOCHandle->pTIMHandle);
+
+    //clear status flag due to EGR
+    TIM_UIF_STATUS_CLEAR(pTIMOCHandle->pTIMHandle->pTIMx);
 }
 
 
@@ -146,7 +161,6 @@ void TIM_OC_init(TIM_OC_Handle* pTIMOCHandle)
                        pTIMOCHandle->TIMx_OC_Config.oc_channel,
                        pTIMOCHandle->pTIMHandle->TIMx_Intrpt_Config.interrupt_mode);
 }
-
 
 
 
@@ -203,7 +217,6 @@ void TIM_Count_Reset(TIM_Handle* pTIMHandle)
 
 void TIM_Update_Event_Check(TIM_Handle* pTIMHandle)
 {
-
     //wait till UIF becomes 1
     while(!(pTIMHandle->pTIMx->SR & 1<<TIM_SR_UIF));
 

@@ -1,11 +1,9 @@
-#include "stm32f103xx.h"
-#include "stm32f103xx_gpio.h"
-#include "stm32f103xx_usart.h"
-#include "stm32f103xx_afio.h"
-#include "stm32f103xx_exti.h"
-#include "stm32f103xx_nvic.h"
-
-//extern GPIO_Pins GPIO_Used;
+#include"stm32f103xx.h"
+#include"stm32f103xx_gpio.h"
+#include"stm32f103xx_usart.h"
+#include"stm32f103xx_afio.h"
+#include"stm32f103xx_exti.h"
+#include"stm32f103xx_nvic.h"
 
 /*USART Pins
 -USART2
@@ -21,6 +19,9 @@
 --CTS  PB13
 --RTS  PB14
 */
+
+
+extern uint32_t sysclock;
 /*--------------------------------------------------------------------------------------------------------------------------*/
 /*********************************************** USART API's Definitions Start **********************************************/
 
@@ -86,7 +87,7 @@ void USART_Configure(USART_Handle* pUSARTHandle, uint8_t mode, uint32_t baudrate
 //USART Set Baudrate
 void USART_SetBaudRate(USART_Handle* pUSARTHandle)
 {
-    uint16_t uartdiv = SYSCORE_CLK/(pUSARTHandle->USARTx_Config.baudrate);
+    uint16_t uartdiv = RCC_Get_PCLK1()/(pUSARTHandle->USARTx_Config.baudrate);
     pUSARTHandle->pUSARTx->BRR |= ((uartdiv/16) << USART_BRR_DIV_MANTISSA) | ((uartdiv%16) << USART_BRR_DIV_FRACTION);
 }                                                                                               
 
@@ -113,9 +114,6 @@ void USART_init(USART_Handle* pUSARTHandle, GPIO_Handle* pGPIOHandle,  USART_Reg
         //PA3
         pUSARTHandle->pGPIOHandle->GPIOx_PinConfig.PinNo = 3;
         GPIO_Init(pUSARTHandle->pGPIOHandle);
-
-        //uint8_t p[2] = {2, 3};
-        //GPIO_Used_Update(GPIOA_BASE_ADDR, p, 2);
     }
 
     //1. Enable GPIOA Peripheral Clock
@@ -205,7 +203,7 @@ void USART_RX(USART_Handle* pUSARTHandle, uint8_t* pbuffer, uint32_t size)
 
     while(size--)
     {
-        //wait till USART_SR->RXNE becomes 1 to indicate that USART_DR is not empty
+        //wait till USART_SR->TXE becomes 1 to indicate that USART_DR is empty
         while(!(pUSARTHandle->pUSARTx->SR & 1<<USART_SR_RXNE));
 
         if(pUSARTHandle->USARTx_Config.word_length == USART_WORD_9BIT)
@@ -229,6 +227,7 @@ void USART_RX(USART_Handle* pUSARTHandle, uint8_t* pbuffer, uint32_t size)
         
         pUSARTHandle->RXState = USART_READY;
     }
+
 }
 
 //USART Interrupt Configuration

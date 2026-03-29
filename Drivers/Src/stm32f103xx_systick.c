@@ -1,5 +1,6 @@
-#include "stm32f103xx_systick.h"
-#include "stm32f103xx_serial.h"
+#include"stm32f103xx_systick.h"
+#include"stm32f103xx_serial.h"
+#include"stm32f103xx_config.h"
 
 uint32_t current_tick;
 
@@ -20,8 +21,13 @@ void Systick_Configure(uint8_t clk_src, uint8_t exception)
     else if(exception == SYSTICK_EXCEPTION_ENABLE)
         SYSTICK_ENABLE_INTERRUPT();
 
-    //Load Reload Value
-    SYSTICK_LOAD(SYSTICK_LOAD_VALUE_DEFAULT - 1);
+    //Load Reload Value based on SYSCLK
+    uint8_t sysclk_src = RCC_Get_SYSCLK_Source();
+    uint32_t sysclk_freq = RCC_Get_SYSCLK();
+    if(sysclk_src == SYSCLK_PLL && sysclk_freq < SYSTICK_MAX_VALUE)
+        SYSTICK_LOAD(sysclk_freq/1000 - 1);
+    else
+        SYSTICK_LOAD(SYSTICK_LOAD_VALUE_DEFAULT - 1);
 
     //Clear current value
     SYSTICK_CLEAR();
@@ -58,6 +64,7 @@ void Systick_delay(uint32_t delay_ms)
 #if ENABLE_SYSTICK_HANDLER_DEFAULT == 1
 void SysTick_Handler(void)
 {
-    SYSTICK_TICK_INC();
+    //Systick_Tick_Inc();
+    SYSTICK_CURR_TICK_INC();
 }
 #endif

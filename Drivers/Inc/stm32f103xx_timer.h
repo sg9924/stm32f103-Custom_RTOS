@@ -37,10 +37,19 @@ typedef struct
 {
     uint8_t  oc_mode;
     uint8_t  oc_channel;
-    uint16_t oc_value;
     uint8_t  oc_polarity;
     uint8_t  oc_preload;
+    uint16_t oc_value;
 }TIM_OC_Config;
+
+//Timer PWM Config
+typedef struct
+{
+    uint8_t      frequency;
+    uint16_t     duty_cycle;
+    GPIO_RegDef* gpio_port;
+    uint8_t      gpio_pin;
+}TIM_PWM_Config;
 
 //Timer Base Handle
 typedef struct
@@ -55,11 +64,19 @@ typedef struct
 //Timer Output Channel Handle
 typedef struct
 {
-    //TIM_RegDef*      pTIMx;
     TIM_Handle*      pTIMHandle;
     TIM_OC_Config    TIMx_OC_Config;
     uint8_t          timer_state;
 }TIM_OC_Handle;
+
+//Timer PWM Handle
+typedef struct
+{
+    TIM_Handle*      pTIMHandle;
+    TIM_OC_Config    TIMx_OC_Config;
+    TIM_PWM_Config   TIMx_PWM_Config;
+    uint8_t          timer_state;
+}TIM_PWM_Handle;
 
 
 //TIM_CR1 Register Bit Field Definitions
@@ -222,26 +239,32 @@ typedef struct
 
 
 //Timer Count Direction
-#define TIM_COUNT_DIR_UP          0
-#define TIM_COUNT_DIR_DOWN        1
-#define TIM_COUNT_DIR_DEFAULT     TIM_COUNT_DIR_UP
+#define TIM_COUNT_DIR_UP            0
+#define TIM_COUNT_DIR_DOWN          1
+#define TIM_COUNT_DIR_DEFAULT       TIM_COUNT_DIR_UP
 
 //Timer Center Aligned Mode Types
-#define TIM_CMS_EDGE              0
-#define TIM_CMS_MODE_1            1
-#define TIM_CMS_MODE_2            2
-#define TIM_CMS_MODE_3            3
-#define TIM_CMS_DEFAULT            TIM_CMS_EDGE
+#define TIM_CMS_EDGE                0
+#define TIM_CMS_MODE_1              1
+#define TIM_CMS_MODE_2              2
+#define TIM_CMS_MODE_3              3
+#define TIM_CMS_DEFAULT             TIM_CMS_EDGE
 
 //Timer One Pulse Mode
-#define TIM_OPM_DISABLE           0
-#define TIM_OPM_ENABLE            1
-#define TIM_OPM_DEFAULT           TIM_OPM_DISABLE
+#define TIM_OPM_DISABLE             0
+#define TIM_OPM_ENABLE              1
+#define TIM_OPM_DEFAULT             TIM_OPM_DISABLE
 
 //Timer Auto Reload Preload
-#define TIM_AR_PRELOAD_DISABLE    0                        //the ARR value is loaded into the shadow register permanently
-#define TIM_AR_PRELOAD_ENABLE     1                        //the ARR value is loaded into the shadow register on each Update Event (UEV)
-#define TIM_AR_PRELOAD_DEFAULT    TIM_AR_PRELOAD_DISABLE
+#define TIM_AR_PRELOAD_DISABLE      0                        //the ARR value is loaded into the shadow register permanently
+#define TIM_AR_PRELOAD_ENABLE       1                        //the ARR value is loaded into the shadow register on each Update Event (UEV)
+#define TIM_AR_PRELOAD_DEFAULT      TIM_AR_PRELOAD_DISABLE
+
+//Timer Output Channel Mode
+#define TIM_CC_MODE_OP              0
+#define TIM_CC_MODE_IP_TI2          1
+#define TIM_CC_MODE_IP_TI1          2
+#define TIM_CC_MODE_IP_TRC          3
 
 //Output Compare Settings
 //Output Compare Mode
@@ -255,34 +278,37 @@ typedef struct
 #define TIM_OC_MODE_PWM_2           7
 
 //Output Compare Polarity
-#define TIM_OC_POL_ACTIVE_HIGH    0
-#define TIM_OC_POL_ACTIVE_LOW     1
+#define TIM_OC_POL_ACTIVE_HIGH      0
+#define TIM_OC_POL_ACTIVE_LOW       1
 
 //Output Compare Preload
-#define TIM_OC_PRELOAD_DISABLE    0
-#define TIM_OC_PRELOAD_ENABLE     1
+#define TIM_OC_PRELOAD_DISABLE      0
+#define TIM_OC_PRELOAD_ENABLE       1
 
 //Timer Interrupts
-#define TIM_UPDATE_INTRPT         0
-#define TIM_CC_INTRPT             1
-#define TIM_TRIG_INTRPT           5
+#define TIM_UPDATE_INTRPT           0
+#define TIM_CC_INTRPT               1
+#define TIM_TRIG_INTRPT             5
 
 //Timer DMA
-#define TIM_UPDATE_DMA            8
-#define TIM_CC_DMA                9
-#define TIM_TRIG_DMA              13
+#define TIM_UPDATE_DMA              8
+#define TIM_CC_DMA                  9
+#define TIM_TRIG_DMA                13
 
 
 //Timer Channel
-#define TIM_CHANNEL1              0
-#define TIM_CHANNEL2              1
-#define TIM_CHANNEL3              2
-#define TIM_CHANNEL4              3
+#define TIM_CHANNEL1                0
+#define TIM_CHANNEL2                1
+#define TIM_CHANNEL3                2
+#define TIM_CHANNEL4                3
 
 //Timer State
-#define TIM_STATE_READY           0
-#define TIM_STATE_RUNNING         1
+#define TIM_STATE_READY             0
+#define TIM_STATE_RUNNING           1
 
+//Timer PWM mode
+#define TIM_PWM_MODE1               TIM_OC_MODE_PWM_1
+#define TIM_PWM_MODE2               TIM_OC_MODE_PWM_2
 
 
 //TIMER Peripherals Definition
@@ -325,6 +351,69 @@ typedef struct
 #define TIM5_DISABLE()               (TIM5->CR1 &= ~(1<<TIM_CR1_CEN))
 #define TIM6_DISABLE()               (TIM6->CR1 &= ~(1<<TIM_CR1_CEN))
 
+//Timer PSC Load
+#define TIM_PSC_LOAD(timx,psc)       (timx->PSC = psc-1)
+
+//Timer ARR Load
+#define TIM_ARR_LOAD(timx,arr)       (timx->ARR = arr-1)
+
+//Timer ARR Preload
+#define TIM_ARPE_SET(timx)           (timx->CR1 |= 1<<TIM_CR1_ARPE)
+#define TIM_ARPE_CLEAR(timx)         (timx->CR1 &= ~(1<<TIM_CR1_ARPE))
+
+//Timer Shadow Reg Update
+#define TIM_SHADOW_UPDATE(timx)      (timx->EGR |= 1<<TIM_EGR_UG)
+
+//Timer Status Clear
+#define TIM_STATUS_CLEAR(timx,flags) (timx->SR &= ~(flags))
+
+//Timer Count Reset
+#define TIM_COUNT_RESET(timx)        (timx->CNT = 0)
+
+//Timer Update Event Trigger
+#define TIM_UPDATE_TRIGGER(timx)     do {                                 \
+                                            timx->EGR |= 1<<TIM_EGR_UG;   \
+                                            timx->SR |= ~(1<<TIM_SR_UIF); \
+                                         }while(0)
+
+
+
+
+#define TIM_CCMR_REG_SEL(chnl)                        ((chnl>1)?1:0)
+
+#define TIM_OC_CC_SEL_CONFIG(timx,chnl,mode)          (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] |= mode << ((chnl%2)*8))
+#define TIM_OC_CC_SEL_CLEAR(timx,chnl)                (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] &= ~(3 << ((chnl%2)*8)))
+
+#define TIM_OC_MODE_CONFIG(timx,chnl,mode)            (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] |= mode << (((chnl%2)*8)+4))
+#define TIM_OC_MODE_CLEAR(timx,chnl)                  (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] &= ~(0x7 << (((chnl%2)*8)+4)))
+
+#define TIM_OC_PRELOAD_SET(timx,chnl)                 (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] |= 1 << (((chnl%2)*8)+3))
+#define TIM_OC_PRELOAD_CLEAR(timx,chnl)               (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] &= ~(1<< ((chnl%2)*8)+3))
+
+#define TIM_OC_FAST_ENABLE(timx,chnl)                 (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] |= 1<< (((chnl%2)*8)+2))
+#define TIM_OC_FAST_DISABLE(timx,chnl)                (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] &= ~(1<< ((chnl%2)*8)+2))
+
+#define TIM_OC_CLEAR_ENABLE(timx,chnl)                (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] |= 1<< (((chnl%2)*8)+7))
+#define TIM_OC_CLEAR_DISABLE(timx,chnl)               (timx->CCMR[TIM_CCMR_REG_SEL(chnl)] &= ~(1<< ((chnl%2)*8)+7))
+
+#define TIM_OC_POL_SET_ACTIVE_HIGH(timx,chnl)         (timx->CCER &= ~(1 << ((chnl*4)+1)))
+#define TIM_OC_POL_SET_ACTIVE_LOW(timx,chnl)          (timx->CCER &= 1 << ((chnl*4)+1))
+
+#define TIM_CC_OP_ENABLE(timx,chnl)                   (timx->CCER |= 1<< (chnl*4))
+#define TIM_CC_OP_DISABLE(timx,chnl)                  (timx->CCER &= ~(1 << (chnl*4)))
+
+#define TIM_PWM_DC_LOAD(timx,chnl,value)              (timx->CCR[chnl] = value)
+#define TIM_PWM_START(timx,chnl)                      (TIM_CC_OP_ENABLE(timx,chnl) , TIM_PWM_DC_LOAD(timx,chnl,0))
+#define TIM_PWM_STOP(timx,chnl)                       (TIM_CC_OP_DISABLE(timx,chnl) , TIM_PWM_DC_LOAD(timx,chnl,0))
+
+
+
+#define TIM_GEN_UPDATE_EVENT(timx,chnl)               (timx->EGR |= 1 << TIM_EGR_UG)
+
+#define TIM_UIF_STATUS_CLEAR(timx)                    (timx->SR &= ~(1<< TIM_SR_UIF))
+
+
+
 
 //Function Declarations
 
@@ -342,7 +431,7 @@ void TIM_Base_Configure(TIM_Handle* pTIMHandle, TIM_RegDef* pTIMx, uint8_t count
 void TIM_Base_init(TIM_Handle* pTIMHandle);
 //Timer Start
 void TIM_Base_Start(TIM_Handle* pTIMHandle);
-//Timer Start
+//Timer Stop
 void TIM_Base_Stop(TIM_Handle* pTIMHandle);
 
 //General Timer Functions
@@ -350,6 +439,15 @@ void TIM_Base_Stop(TIM_Handle* pTIMHandle);
 
 //DMA
 void TIM_DMA_Init(TIM_RegDef* pTIMx, uint8_t dma_type, uint8_t channel, uint8_t mode);
+
+
+//Output Compare
+void TIM_OC_Configure(TIM_Handle* pTIMHandle, TIM_OC_Handle* pTIMOCHandle, uint8_t oc_mode, uint8_t oc_channel, uint8_t oc_polarity, uint8_t oc_preload, uint16_t oc_value);
+void TIM_OC_Channel_init(TIM_OC_Handle* pTIMOCHandle);
+void TIM_OC_init(TIM_OC_Handle* pTIMOCHandle);
+void TIM_OC_Start(TIM_OC_Handle* pTIMOCHandle, uint8_t channel);
+void TIM_OC_Stop(TIM_OC_Handle* pTIMOCHandle, uint8_t channel);
+
 
 //Helper API's
 void TIM_Prescaler_Load(TIM_Handle* pTIMHandle, uint32_t prescale_value);

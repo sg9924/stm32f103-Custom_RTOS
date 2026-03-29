@@ -9,7 +9,6 @@
 #define true               1
 #define false              0
 
-
 #define TRIM_LEFT               0
 #define TRIM_RIGHT              1
 
@@ -24,6 +23,8 @@ uint32_t string_size(char* data);
 char* string_truncate(char* pbuff, uint8_t length, uint8_t no_of_chars, uint8_t direction);
 char* string_concat(char* s1, char* s2);
 char* string_trim(char* pbuff, uint8_t direction, char character, uint32_t length);
+char* string_format(char* str, ...);
+
 char* array_reverse(char* pbuff, uint8_t length);
 char* string_copy(char* dest, char* src);
 char* end_of_string(char* str);

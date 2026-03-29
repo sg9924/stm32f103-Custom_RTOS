@@ -2,9 +2,9 @@
 #define INC_STM32F103XX_SYSTICK_H
 
 #include "stm32f103xx.h"
-#include "stm32f103xx_config.h"
 #include "stm32f103xx_core.h"
 #include "stm32f103xx_memory_map.h"
+#include "stm32f103xx_rcc.h"
 
 //Systick Peripheral Definition
 #define SYSTICK_BASE_ADDR      (SCS_BASE_ADDR + 0x010U)
@@ -17,7 +17,7 @@
 #define SYST_CSR_COUNTFLAG               16
 
 #define SYSTICK_MAX_VALUE                0xFFFFFFFFU
-#define SYSTICK_LOAD_VALUE_DEFAULT       ((8000000U)/1000)
+#define SYSTICK_LOAD_VALUE_DEFAULT       ((RCC_SYSCLK_FREQ_DEFAULT)/1000)
 
 //SYSTICK Configuration
 #define SYSTICK_EXCEPTION_DISABLE        0
@@ -29,6 +29,7 @@
 
 //Macros
 #define SYSTICK_CLEAR()                  (SYSTICK->CVR = 0)
+#define SYSTICK_CURR_TICK_INC()          (current_tick += 1)
 #define SYSTICK_LOAD(load_value)         (SYSTICK->RVR = load_value)
 #define SYSTICK_GET()                    (SYSTICK->CVR)
 #define SYSTICK_CHECK_FLAG()             (CHECK_BIT(SYSTICK->CSR, SYST_CSR_COUNTFLAG))
@@ -40,6 +41,16 @@
 #define SYSTICK_EXCEPTION_PEND()         (SCB->ICSR |= 1<<SCB_ICSR_PENDSTSET)
 #define SYSTICK_EXCEPTION_CLEAR()        (SCB->ICSR |= 1<<SCB_ICSR_PENDSTCLR)
 
+//systick clock source
+#define SYSTICK_CLK_SRC_CLR()            (SYSTICK->CSR &= ~(1<<SYST_CSR_CLKSOURCE))
+#define SYSTICK_GET_CLK_SRC()            ((SYSTICK->CSR & 1<<SYST_CSR_CLKSOURCE)>>SYST_CSR_CLKSOURCE)
+#define SYSTICK_CLK_SRC_SET(x)           do{ \
+                                            if(x == SYSTICK_CLK_SRC_AHB_DIV_8) \
+                                                SYSTICK_CLK_SRC_CLR(); \
+                                            else \
+                                                SYSTICK->CSR |= 1<<SYST_CSR_CLKSOURCE; \
+                                            }while(0)
+
 
 
 //APi Declarations
@@ -47,6 +58,6 @@ void Systick_Configure(uint8_t clk_src, uint8_t exception);
 void Systick_init();
 uint32_t Systick_get_tick();
 void Systick_Tick_Inc(void);
-void Systick_delay(uint32_t delay);
+void Systick_delay(uint32_t delay_ms);
 
 #endif

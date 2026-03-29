@@ -76,6 +76,18 @@
 #define DMA1_BASE_ADDR      (0x40020000)
 #define DMA2_BASE_ADDR      (0x40020400)
 
+//PWR
+#define PWR_BASE_ADDR       (0x40007000)
+
+//BKP
+#define BKP_BASE_ADDR       (0x40006C00)
+
+//RTC
+#define RTC_BASE_ADDR       (0x40002800)
+
+//FLASH
+#define FLASH_INTERFACE_BASE_ADDR        (0x40022000)
+
 /********************************************** Memory Address Definitions End **********************************************/
 /*--------------------------------------------------------------------------------------------------------------------------*/
 
