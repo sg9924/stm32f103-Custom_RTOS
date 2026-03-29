@@ -18,3 +18,24 @@
         - Buffer address in queueAdd and queueRemove were being calculated incorrectly
     - Bug Fix:
         - Queue Buffer Address calculation macro has been introduced
+
+3: BUG FIXES:
+    - Bugs:
+        - Kernel: Priority scheduler Logic:
+            - no strict priority checking
+            - tasks are added in the queue in right order only but not executed in right order in some cases
+            - during task execution, priority check is not enforced properly
+        - queueReceive and queueSend:
+            - task which woke up, has a higher priority, preemption should happen
+    - Bug Fixes:
+        - Kernel:
+            - priority check has been enforced
+            - current task is immediately added to the ready queue for preemption
+            - ready queue empty check logic has been removed
+            - ready queue reset logic has been removed
+            - unnecessary looping through the tasks has been avoided
+        - Queue:
+            - task preemption introduced
+            - ready queue add after blocked queue remove introduced
+        - Task:
+            - add the ready queue add function in task unblock
