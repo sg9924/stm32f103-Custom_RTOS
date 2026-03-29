@@ -136,9 +136,16 @@ bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick)
             tcb_t* task = waitlist_Pop(&q->readers);
             q->reader_count--;
 
-            ENABLE_IRQ();
-            //since data has been sent to the buffer, reader/receiver task will copy from queue when it wakes
+            //wake the reader task
             blocked_queue_remove(task, TASK_STATE_READY);
+            ready_queue_add(task);
+
+            //check the unblocked reader task's priority
+            //if priority of unblocked task is "higher" than that of current task
+            //preemption should happen
+            //if(task->task_priority < pcurrent->task_priority)
+                taskYield();
+            ENABLE_IRQ();
         }
         else ENABLE_IRQ();
         return true;
@@ -188,9 +195,17 @@ bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick)
             tcb_t* task = waitlist_Pop(&q->readers);
             q->reader_count--;
 
-            ENABLE_IRQ();
             //since data has been sent to the buffer, queue is populated, reader/receiver task will copy from queue when it wakes
+            //wake the reader task
             blocked_queue_remove(task, TASK_STATE_READY);
+            ready_queue_add(task);
+
+            //check the unblocked reader task's priority
+            //if priority of unblocked task is "higher" than that of current task
+            //preemption should happen
+            if(task->task_priority < pcurrent->task_priority)
+                taskYield();
+            ENABLE_IRQ();
         }
         else ENABLE_IRQ();
         return true;
@@ -222,12 +237,19 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
         if(q->writers.head)
         {
             //get the waiting writer task
-            tcb_t* t = waitlist_Pop(&q->writers);
+            tcb_t* task = waitlist_Pop(&q->writers);
             q->writer_count--;
 
-            ENABLE_IRQ();
             //wake the writer task
-            blocked_queue_remove(t, TASK_STATE_READY);
+            blocked_queue_remove(task, TASK_STATE_READY);
+            ready_queue_add(task);
+
+            //check the unblocked writer task's priority
+            //if priority of unblocked task is "higher" than that of current task
+            //preemption should happen
+            if(task->task_priority < pcurrent->task_priority)
+                taskYield();
+            ENABLE_IRQ();
         }
         else ENABLE_IRQ();
         return true;
@@ -274,10 +296,18 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
             tcb_t* task = waitlist_Pop(&q->writers);
             q->writer_count--;
 
-            ENABLE_IRQ();
             //since data has been read from the buffer, space frees up, writer/sender task will write to queue when it wakes
             //wake the writer task
             blocked_queue_remove(task, TASK_STATE_READY);
+            ready_queue_add(task);
+
+            ENABLE_IRQ();
+            
+            //check the unblocked writer task's priority
+            //if priority of unblocked task is "higher" than that of current task
+            //preemption should happen
+            if(task->task_priority < pcurrent->task_priority)
+                taskYield();
         }
         else ENABLE_IRQ();
         return true;
