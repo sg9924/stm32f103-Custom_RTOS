@@ -135,7 +135,7 @@ void taskAdd_Idle()
     TCBS[0].task_weight = 1;
     #endif
     #if SCHEDULER == SCHEDULER_PRIORITY
-    TCBS[0].task_priority = TASK_MAX_NO_OF_PRIORITY;  //lowest priority
+    TCBS[0].task_priority = TASK_MAX_NO_OF_PRIORITY-1;  //lowest priority
     #endif
     TCBS[0].block_tick  = 0;
 }
@@ -166,7 +166,7 @@ void taskIdle(void)
 }
 
 
-
+//to be corrected for the latest priority scheduler
 void taskUnblock(void)
 {
     tcb_t* temp = pcurrent;
