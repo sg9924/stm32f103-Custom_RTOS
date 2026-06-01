@@ -57,7 +57,7 @@ void taskAdd_Idle()
     TCBS[0].ptask_func    = &taskIdle;
     TCBS[0].task_desc     = "Idle Task";
     TCBS[0].task_id       = 0;
-    TCBS[0].task_priority = TASK_MAX_PRIORITY; //lowest priority
+    TCBS[0].task_priority = TASK_MAX_PRIORITY-1; //lowest priority
 }
 
 
@@ -135,10 +135,10 @@ void taskUnblock(void)
                 else
                     tprev->pnext = tnext;
 
-                //set task as ready
-                t->task_state = TASK_STATE_READY;
+                //add to ready queue
                 t->block_tick = 0;
                 t->pnext      = NULL;
+                ready_queue_add(t);
 
                 //compare the priorities of the unblocked task and current task
                 if(t->task_priority > pcurrent->task_priority)
