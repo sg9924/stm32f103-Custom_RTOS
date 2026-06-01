@@ -58,6 +58,9 @@ void Systick_Configure(uint8_t clk_src, uint8_t exception);
 void Systick_init();
 uint32_t Systick_get_tick();
 void Systick_Tick_Inc(void);
+
+#if ENABLE_SYSTICK_DELAY == 1
 void Systick_delay(uint32_t delay_ms);
+#endif
 
 #endif

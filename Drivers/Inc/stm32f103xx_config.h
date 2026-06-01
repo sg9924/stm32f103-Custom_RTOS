@@ -3,6 +3,7 @@
 
 
 #define ENABLE_SYSTICK_HANDLER_DEFAULT                      0
+#define ENABLE_SYSTICK_DELAY                                0
 
 //Board Init
 #define BOARD_INIT_SERIAL                                   1
