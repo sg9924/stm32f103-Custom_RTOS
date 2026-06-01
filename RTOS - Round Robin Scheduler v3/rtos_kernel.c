@@ -111,9 +111,19 @@ void rtosKernel_Launch(uint32_t quanta)
     //Systick Timer Config
     SYSTICK_DISABLE();
     SYSTICK_CLEAR();
-    SYSTICK->CSR |= 1<<SYST_CSR_CLKSOURCE;
-    SYSTICK_LOAD((quanta * (SYSCORE_CLK/1000)) - 1);
+
+    //set systick clock source
+    SYSTICK_CLK_SRC_SET(SYSTICK_CLK_SRC_AHB_DIV_8);
+    
+    //load systick based on its clock source
+    if(SYSTICK_GET_CLK_SRC() == SYSTICK_CLK_SRC_AHB)
+        SYSTICK_LOAD((quanta * (RCC_Get_SYSCLK()/1000)) - 1);
+    //AHB by 8
+    else
+        SYSTICK_LOAD((quanta * ((RCC_Get_SYSCLK()/8)/1000)) - 1);
+
     SCB->SHPR3 |= 0xFF<<24; //set lowest priority for systick handler
+
     SYSTICK_ENABLE_INTERRUPT();
 
     //Initialize the Tasks
