@@ -1,4 +1,4 @@
-initial:
+1: INITIAL
 - basic Priority scheduler
 - only ready queue/list
 - no blocked queue yet
@@ -7,7 +7,23 @@ initial:
     - where initial run goes fine, 2nd run is weirdly out of order and then in the subsequent runs it runs as expected
     - adding taskdelay in all tasks results in the initial run running fine and the delay is not taking effect in subsequent runs which ahould repeat the behaviour of the first run
 
-2:
+2: REMOVAL
     - remove rtosKernel_TCBInit, taskDelay & taskUnblock API
     - interferes with the ready queue. previous bugs were due to this interference
     - task delay and task unblock will be introduced later with the blocked queue functionality
+
+3: BUG FIXES:
+    - Bugs:
+        - Kernel: Priority scheduler Logic:
+            - no strict priority checking
+            - tasks are added in the queue in right order only but not executed in right order in some cases
+            - during task execution, priority check is not enforced properly
+            - clock source not accounted for in systick configuration
+    - Bug Fixes:
+        - Kernel:
+            - priority check has been enforced
+            - current task is immediately added to the ready queue for preemption
+            - ready queue empty check logic has been removed
+            - ready queue reset logic has been removed
+            - unnecessary looping through the tasks has been avoided
+            - logic has been introduced to configure systick based on clock source

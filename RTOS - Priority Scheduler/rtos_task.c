@@ -47,24 +47,8 @@ void taskAdd_Idle()
     TCBS[0].ptask_func    = &taskIdle;
     TCBS[0].task_desc     = "Idle Task";
     TCBS[0].task_id       = 0;
-    TCBS[0].task_priority = TASK_MAX_PRIORITY; //lowest priority
+    TCBS[0].task_priority = TASK_MAX_PRIORITY-1; //lowest priority
 }
-
-
-/*
-void taskDelay(uint32_t tick)
-{
-    //for all tasks other than idle task (id = 0)
-    if(pcurrent->task_id)
-    {
-        pcurrent->block_tick = current_tick + tick;
-        pcurrent->task_state = TASK_STATE_BLOCKED;
-
-        //Pend the systick Exception to switch to next task
-        SYSTICK_EXCEPTION_PEND();
-    }
-}
-*/
 
 
 
@@ -75,24 +59,6 @@ void taskIdle(void)
         Serialprint("No Tasks to run...\r\n", INFO);
     }
 }
-
-
-/*
-void taskUnblock(void)
-{
-    tcb_t* temp = getTask_List();
-
-    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
-    {
-        if(temp->task_state == TASK_STATE_BLOCKED)
-        {
-            if(temp->block_tick == current_tick)
-                temp->task_state = TASK_STATE_READY;
-        }
-        temp += 1;
-    }
-}
-*/
 
 
 
