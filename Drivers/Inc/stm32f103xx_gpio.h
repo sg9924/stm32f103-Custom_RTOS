@@ -84,6 +84,20 @@
 #define GPIOF_REG_RESET()       do{ RCC->APB2RSTR |= (1<<7); RCC->APB2RSTR &= ~(1<<5); }while(0)
 #define GPIOG_REG_RESET()       do{ RCC->APB2RSTR |= (1<<8); RCC->APB2RSTR &= ~(1<<6); }while(0)
 
+#define GPIO_BIT_SET(gpiox,pin)            (gpiox->BSRR = 1<<pin)
+#define GPIO_BIT_RESET(gpiox,pin)          (gpiox->BSRR = 1<<(pin+16))
+
+#define GPIO_PIN_READ(gpiox,pin)           ((uint8_t)((gpiox->IDR >> pin) & 0x00000001))
+#define GPIO_PORT_READ(gpiox)              (uint32_t)(gpiox->IDR)
+
+#define GPIO_CR_REG_SELECT(pin)            (pin>7)?1:0
+
+#define GPIO_MODE_SET(gpiox,pin,mode)      (gpiox->CR[GPIO_CR_REG_SELECT(pin)] |= mode << (pin * 4))
+#define GPIO_MODE_CLEAR(gpiox,pin)         (gpiox->CR[GPIO_CR_REG_SELECT(pin)] &= ~(3 << (pin * 4)))
+
+#define GPIO_CONFIG_SET(gpiox,pin,conf)    (gpiox->CR[GPIO_CR_REG_SELECT(pin)] |= conf << ((pin * 4)+2))
+#define GPIO_CONFIG_CLEAR(gpiox,pin)       (gpiox->CR[GPIO_CR_REG_SELECT(pin)] &= ~(3 << ((pin * 4)+2)))
+
 // GPIO Port to Code
 #define GPIO_BASEADDR_TO_CODE(x)       ((x == GPIOA)?0:\
                                         (x == GPIOB)?1:\
