@@ -1,4 +1,4 @@
-1: INITIAL
+1: NEW
     - add blocked queue APIs
     - task delay API: adds block tick = current tick + (tick passed as input)
     - task unblock API: compares current tick and the bock tick value for the task
@@ -18,12 +18,28 @@
 
 4: BUG FIXES
     - task unblock bug fix
-    - bugs:
+    - Bugs:
         - worked only for one blocked task
             - essentially handled only the head task in queue, for more than 1 blocked task, all of them are unblocked if one was to be unblocked
         - upon encountering one blocked task, it unblocks it and immediately returns without checking the rest of the queue for other blocked tasks
         - missing logic: if the unblocked task has priority > priority of current task, yield should be performed
-    - bug fixes:
+    - Bug fixes:
         - logic fixed to handle both head and middle or last node in queue scenarios
         - return has been removed and placed outside the loop
         - yield flag has been introduced and task yield is done at the end of the loop
+
+5: BUG FIXES:
+    - Bugs:
+        - Kernel: Priority scheduler Logic:
+            - no strict priority checking
+            - tasks are added in the queue in right order only but not executed in right order in some cases
+            - during task execution, priority check is not enforced properly
+            - clock source not accounted for in systick configuration
+    - Bug Fixes:
+        - Kernel:
+            - priority check has been enforced
+            - current task is immediately added to the ready queue for preemption
+            - ready queue empty check logic has been removed
+            - ready queue reset logic has been removed
+            - unnecessary looping through the tasks has been avoided
+            - logic has been introduced to configure systick based on clock source
