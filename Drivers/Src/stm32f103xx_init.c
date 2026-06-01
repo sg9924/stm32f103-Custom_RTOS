@@ -75,7 +75,7 @@ void led_flash(uint8_t freq, uint16_t interval_ms)
     for(uint8_t i=0; i<freq ; i++)
     {
         led_toggle();
-        Systick_delay(interval_ms);
+        tim_delay_ms(interval_ms);
     }
 }
 
