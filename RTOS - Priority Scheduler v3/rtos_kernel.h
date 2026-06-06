@@ -8,7 +8,7 @@
 #define DISABLE_IRQ()            __asm("CPSID I")
 #define ENABLE_IRQ()             __asm("CPSIE I")
 
-#define MS_TO_TICK(ms_value)     ((ms_value*TICK_RATE_HZ) + (1000-1)/1000)
+#define MS_TO_TICK(ms_value)     (((ms_value * TICK_RATE_HZ) + (1000-1))/1000)
 
 
 void rtosKernel_Init();

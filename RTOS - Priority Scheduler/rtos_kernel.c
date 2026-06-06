@@ -233,6 +233,8 @@ static void rtosScheduler_Priority()
     {
         //set loop limit for pirority
         loop_priority = pcurrent->task_priority;
+        //set it as ready
+        pcurrent->task_state = TASK_STATE_READY;
         //add to ready queue
         add_to_ready_queue(pcurrent);
     }
