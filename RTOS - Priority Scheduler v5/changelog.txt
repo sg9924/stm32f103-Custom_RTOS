@@ -1,0 +1,8 @@
+1: INITIAL
+    - Introduce PendSV Exception
+    - PendSV Handler manages the context switch and the scheduler function call. This is a naked function.
+    - Systick Handler manages the Tick increment and the task unblocking. This is not a naked function.
+    - This implementation provides the correct response to a task yield call.
+        - In the previous implementation where we were using only the systick handler to manage everything: context switch, scheduler call, systick increment and the task unblocking.
+        - invoking the task yield artificially accelerates the tick, as we are intentionally invoking the systick exception instead of letting it happen according to the configuration whether its 1 ms or 10 ms...
+    - added a test function which blinks 3 LEDs connected to specific GPIOs
