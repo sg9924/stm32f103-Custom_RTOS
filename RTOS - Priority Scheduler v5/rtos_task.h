@@ -3,6 +3,7 @@
 #include<stdint.h>
 
 #include "rtos_config.h"
+#include "stm32f103xx_utilities.h"
 
 
 //Task States
@@ -40,7 +41,7 @@ typedef struct tcb
 
 void __task_count_init(void);
 void taskAdd_Idle();
-void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority);
+tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority);
 
 
 void taskDelay(uint32_t tick);

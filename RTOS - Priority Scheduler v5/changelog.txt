@@ -6,3 +6,6 @@
         - In the previous implementation where we were using only the systick handler to manage everything: context switch, scheduler call, systick increment and the task unblocking.
         - invoking the task yield artificially accelerates the tick, as we are intentionally invoking the systick exception instead of letting it happen according to the configuration whether its 1 ms or 10 ms...
     - added a test function which blinks 3 LEDs connected to specific GPIOs
+
+2: TASK
+    - Added return in taskAdd_Priority to return the TCB of the task being added which can be used later in the main program

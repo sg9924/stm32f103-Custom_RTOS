@@ -28,7 +28,7 @@ INC_DIR=../Drivers/Inc
 SRC_DIR=../Drivers/Src
 
 #Files
-MAIN=test_1_led
+MAIN=main
 ELF=final.elf
 STARTUP=bp_startup
 SYSCALLS=syscalls

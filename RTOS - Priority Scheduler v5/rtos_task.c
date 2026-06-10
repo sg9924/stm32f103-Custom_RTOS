@@ -26,7 +26,7 @@ void __task_count_init(void)
 
 
 
-void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority)
+tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority)
 {
     if(task_count>NO_OF_TASKS)
     {
@@ -47,7 +47,7 @@ void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority)
     taskNotify_Reset(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
-    task_count++;
+    return &TCBS[task_count++];
 }
 
 
@@ -59,6 +59,7 @@ void taskAdd_Idle()
     TCBS[0].task_id       = 0;
     TCBS[0].task_priority = MAX_NO_OF_PRIORITY-1; //lowest priority
 }
+
 
 
 
@@ -162,9 +163,6 @@ void taskUnblock(void)
 
 void taskYield(void)
 {
-    //SYSTICK_CLEAR();
-    //SYSTICK_EXCEPTION_PEND();
-
     //Pend the PendSV Exception to handle context switch
     INTCTRL = PENDSVSET;
 }
