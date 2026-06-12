@@ -9,3 +9,13 @@
     - bug fixes:
         - logic fixed to handle both head and middle or last node in queue scenarios
         - return has been removed and placed outside the loop
+
+3: BUG FIXES
+    - bugs:
+        - task quota reset worked only in certain scenarios
+    - bug fixes:
+        - fixed the loop logic for the task quota reset API
+    - modified taskAdd_Idle
+    - modified taskReset_Quota: resets quota for a specific task
+    - new API: taskReset_QuotaAll
+    - - RR and RR Weighted Scheduler improvements and bug fixes
