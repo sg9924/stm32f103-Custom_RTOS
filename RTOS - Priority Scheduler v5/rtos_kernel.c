@@ -387,7 +387,6 @@ static void rtosScheduler_Priority()
     else if (pcurrent->task_id == 0)
     {
         pcurrent->task_state = TASK_STATE_READY;
-        //ready_queue_remove(pcurrent, TASK_STATE_READY);
     }
 
 
