@@ -4,38 +4,44 @@
 #include "Semaphore.h"
 
 
-uint8_t flag = 1;
+
 tcb_t* tcb_list[NO_OF_TASKS+1];
 
 
+void gpio_led_init()
+{
+    GPIO_Handle G;
+    //Red LED - Pin A4
+    GPIO_Config(&G, GPIOA, GPIO_MODE_OP, GPIO_CONFIG_GP_OP_PP, GPIO_PIN4, GPIO_OP_SPEED_2);
+    GPIO_Init(&G);
+    //Yellow LED - Pin A5
+    GPIO_Config(&G, GPIOA, GPIO_MODE_OP, GPIO_CONFIG_GP_OP_PP, GPIO_PIN5, GPIO_OP_SPEED_2);
+    GPIO_Init(&G);
+    //Green LED - Pin A6
+    GPIO_Config(&G, GPIOA, GPIO_MODE_OP, GPIO_CONFIG_GP_OP_PP, GPIO_PIN6, GPIO_OP_SPEED_2);
+    GPIO_Init(&G);
+}
+
 void task1(void)
 {
-    uint32_t noti_value;
     while(1)
     {
-        Serialprintln("[Tick: %x] [Task ID: %d] This is Task 1 running...", INFO, Systick_get_tick(), tcb_list[1]->task_id);
-        
-        if(flag)
-        {
-            if(taskNotify_Wait(0, 0, &noti_value, 10)) //wait for noti from task 2
-                Serialprintln("[Tick: %x] [Task ID: %d] Notification Received from Task 2! with Value %d", INFO, Systick_get_tick(), tcb_list[1]->task_id, noti_value);
-        }
+        Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
+        GPIO_OpToggle(GPIOA, GPIO_PIN4);
+        //taskDelay(MS_TO_TICK(500));
+        tim_delay_ms(500);
     }
 }
 
 void task2(void)
 {
     while(1)
-   {
-        Serialprintln("[Tick: %x] [Task ID: %d] This is Task 2 running...", INFO, Systick_get_tick(), tcb_list[2]->task_id);
-
-        if(flag)
-        {
-            taskNotify_Send(tcb_list[1], 1, TASK_NOTIFY_ACTION_INC); //send noti to task 1
-            Serialprintln("[Tick: %x] [Task ID: %d] Notification Sent to Task 1!", INFO, Systick_get_tick(), tcb_list[2]->task_id);
-        }
-        flag = 0;
-   }
+    {
+        Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
+        GPIO_OpToggle(GPIOA, GPIO_PIN5);
+        //taskDelay(MS_TO_TICK(510));
+        tim_delay_ms(510);
+    }
 }
 
 
@@ -43,7 +49,10 @@ void task3(void)
 {
     while(1)
     {
-        Serialprintln("[Tick: %x] [ID: %d] This is Task 3 running...", INFO, Systick_get_tick(), tcb_list[3]->task_id); 
+        Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[3]->task_id, tcb_list[3]->task_priority);
+        GPIO_OpToggle(GPIOA, GPIO_PIN6);
+        //taskDelay(MS_TO_TICK(520));
+        tim_delay_ms(520);
     }
 }
 
@@ -53,13 +62,21 @@ void task3(void)
 int main(void)
 {
     board_init();
-
     rtosKernel_Init();
+    gpio_led_init();
 
+    //Round Robin
     //Add the tasks
     taskAdd(&task1, "Task 1", &tcb_list[1]);
     taskAdd(&task2, "Task 2", &tcb_list[2]);
     taskAdd(&task3, "Task 3", &tcb_list[3]);
+
+    /*
+    //Round Robin Weighted
+    taskAdd_Weighted(&task1, "Task 1", 1, &tcb_list[1]);
+    taskAdd_Weighted(&task2, "Task 2", 1, &tcb_list[2]);
+    taskAdd_Weighted(&task3, "Task 3", 1, &tcb_list[3]);
+    */
 
     //Launch Kernel
     rtosKernel_Launch(TASK_QUANTA_MS);
