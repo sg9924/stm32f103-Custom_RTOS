@@ -52,7 +52,8 @@ void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle);
 void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t** ptask_handle);
 void taskAdd_Idle();
 
-void taskReset_Quota();
+void taskReset_Quota(tcb_t* task);
+void taskReset_QuotaAll();
 
 void taskDelay(uint32_t tick);
 void taskBlock(tcb_t* task, uint32_t timeout_tick);
@@ -68,6 +69,9 @@ tcb_t* getTask_Idle();
 tcb_t* getTask_List();
 uint8_t getTask_Count();
 
+void taskNotify_Reset(tcb_t* task, uint8_t index);
+void taskNotify_Set(tcb_t* task, uint32_t value, uint8_t state, uint8_t index);
+void taskNotify_ResetAll(tcb_t* task);
 void taskNotify_Send(tcb_t* task, uint32_t value, uint8_t action);
 uint32_t taskNotify_Wait(uint32_t clear_on_entry_mask, uint32_t clear_on_exit_mask, uint32_t* out, uint32_t timeout_ticks);
 

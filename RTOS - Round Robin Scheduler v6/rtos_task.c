@@ -46,10 +46,11 @@ void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle)
         TCBS[task_count].task_state        = TASK_STATE_READY;
         TCBS[task_count].task_desc         = task_desc;
         TCBS[task_count].task_weight       = 0;
+        TCBS[task_count].task_quota        = 0;
         TCBS[task_count].block_tick        = 0;
 
-        taskNotify_ResetAll(&TCBS[task_count]);
         ready_queue_add(&TCBS[task_count]);
+        taskNotify_ResetAll(&TCBS[task_count]);
 
         Serialprintln("Task %d added", INFO, task_count);
 
@@ -74,6 +75,7 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tc
         TCBS[task_count].task_state        = TASK_STATE_READY;
         TCBS[task_count].task_desc         = task_desc;
         TCBS[task_count].task_weight       = task_weight;
+        TCBS[task_count].task_quota        = 0;
         TCBS[task_count].block_tick        = 0;
 
         taskNotify_ResetAll(&TCBS[task_count]);
@@ -88,26 +90,37 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tc
 
 
 
-void taskReset_Quota()
+void taskReset_Quota(tcb_t* task)
+{
+    if(!task) return;
+    if(task->task_state == TASK_STATE_READY || task->task_state == TASK_STATE_RUNNING)
+        task->task_quota = task->task_weight;
+}
+
+
+
+void taskReset_QuotaAll()
 {
     tcb_t* tcb = TCBS;
     if(!tcb) return;
     do
     {
         if(tcb->task_state == TASK_STATE_READY || tcb->task_state == TASK_STATE_RUNNING)
-             tcb->task_quota = tcb->task_weight;
-        tcb = tcb->pnext;
-    }while(tcb != TCBS);
+            tcb->task_quota = tcb->task_weight;
+        tcb = tcb + 1;
+    }while(tcb <= (TCBS + NO_OF_TASKS));
 }
 
 
 
 void taskAdd_Idle()
 {
-    TCBS[0].ptask_func  = &taskIdle;
-    TCBS[0].task_desc   = "Idle Task";
-    TCBS[0].task_id     = 0;
-    TCBS[0].task_weight = 0;
+    TCBS[0].ptask_func                 = &taskIdle;
+    TCBS[task_count].task_state        = TASK_STATE_READY;
+    TCBS[0].task_desc                  = "Idle Task";
+    TCBS[0].task_id                    = 0;
+    TCBS[0].task_weight                = 1;
+    TCBS[0].task_quota                 = 0;
 }
 
 
