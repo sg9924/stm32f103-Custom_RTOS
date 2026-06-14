@@ -13,8 +13,8 @@ extern tcb_t *pcurrent;                           //current pointer to a tcb
 
 
 int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
-tcb_t* ready_queue[MAX_NO_OF_PRIORITY];            //ready queues for each priority
-tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];          //blocked queues for each priority
+tcb_t* ready_queue[MAX_NO_OF_PRIORITY];           //ready queues for each priority
+tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];         //blocked queues for each priority
 
 
 
@@ -329,8 +329,6 @@ void rtosKernel_Launch(uint32_t quanta)
     //AHB by 8
     else
         SYSTICK_LOAD((quanta * ((RCC_Get_SYSCLK()/8)/1000)) - 1);
-
-    //SCB->SHPR3 |= 0xFF<<24; //set lowest priority for systick handler
 
     //Clear the current priority configurations for both lanes
     //PendSV sits in bits [23:16], SysTick sits in bits [31:24]
