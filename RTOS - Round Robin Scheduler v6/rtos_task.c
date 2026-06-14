@@ -145,8 +145,8 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
         //insert into blocked queue
         blocked_queue_add(task);
 
-        //Pend the systick Exception to switch to next task
-        SYSTICK_EXCEPTION_PEND();
+        //Pend the PendSV Exception to handle context switch
+        INTCTRL = PENDSVSET;
     }
 }
 
@@ -205,8 +205,8 @@ void taskUnblock(void)
 
 void taskYield(void)
 {
-    SYSTICK_CLEAR();
-    SYSTICK_EXCEPTION_PEND();
+    //Pend the PendSV Exception to handle context switch
+    INTCTRL = PENDSVSET;
 }
 
 

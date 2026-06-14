@@ -1,7 +1,7 @@
 #ifndef __RTOSCONFIG_H__
 #define __RTOSCONFIG_H__
 
-#define TASK_QUANTA_MS                                1
+#define TASK_QUANTA_MS                                1000
 #define TICK_RATE_HZ                                  (1000/TASK_QUANTA_MS)
 
 #define NO_OF_TASKS                                   3

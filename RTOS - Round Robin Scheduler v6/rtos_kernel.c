@@ -297,9 +297,14 @@ void rtosKernel_Launch(uint32_t quanta)
     else
         SYSTICK_LOAD((quanta * ((RCC_Get_SYSCLK()/8)/1000)) - 1);
 
-    //Set Systick to Lowest Priority
+    //Clear the current priority configurations for both lanes
+    //PendSV sits in bits [23:16], SysTick sits in bits [31:24]
     SCB->SHPR3 &= ~(0xFFFF0000UL);
-    SCB->SHPR3 |= (0xFFUL << 24);
+
+    //Set both SysTick and PendSV to the lowest priority (0xFF)
+    //PendSV:  0xFF shifted by 16 bits -> 0x00FF0000
+    //SysTick: 0xFF shifted by 24 bits -> 0xFF000000
+    SCB->SHPR3 |= (0xFFUL << 16) | (0xFFUL << 24);
 
     SYSTICK_ENABLE_INTERRUPT();
 
@@ -489,50 +494,74 @@ __attribute__((naked)) static void rtosScheduler_Launch(void)
     __asm("BX LR");
 }
 /*****************************************************Scheduler APIs End*************************************************/
-__attribute__((naked)) void SysTick_Handler(void)
+
+//Systick IRQ Handler (Standard C Function now, not naked)
+void SysTick_Handler(void)
 {
-    //Disable all global Interrupts
-    DISABLE_IRQ()  ;
+    DISABLE_IRQ();
+
+    //LED Toggle for activity indicator
+    #if BOARD_INIT_LED == 1 && SYSTICK_LED_TOGGLE == 1
+    led_toggle();
+    #endif
+
+    //Increment SysTick
+    Systick_Tick_Inc();
+    //Unblock necessary tasks
+    taskUnblock();
+
+    //Pend the PendSV Exception to handle context switch
+    INTCTRL = PENDSVSET;
+
+    ENABLE_IRQ();
+}
 
 
-    //Suspend Current Task - Save its Context
-    //Push R4-R11 onto the stack
+//PendSV IRQ Handler - Handles the actual context switch
+__attribute__((naked)) void PendSV_Handler(void)
+{
+    DISABLE_IRQ();
+
+    //Suspend Current Task - Save its remaining software context
     __asm("PUSH {R4-R11}");
+    
+    //Load address of pcurrent and save the current SP (MSP) into the TCB
     //load address of the current pointer to R0
     __asm("LDR R0, =pcurrent");
-    //load the address of the TCB of the current task into R1
+    //load address of the current pointer to R0
     __asm("LDR R1, [R0]");
     //Save the SP of the current task into the TCB
     __asm("STR SP, [R1]");
 
-
-    //Switch to the next task
+    //Save the EXC_RETURN value (LR) onto the stack 
+    //before making a function call, otherwise 'BL' will overwrite it.
     //save R0,LR
     __asm("PUSH {R0,LR}");
-    //call systick increment
-    __asm("BL Systick_Tick_Inc");
-    //call task unblock
-    __asm("BL taskUnblock");
-    //call scheduler
+
+    //Call priority scheduler to select the next task.
+    //This updates the 'pcurrent' pointer variable to points to the new TCB.
     #if SCHEDULER == SCHEDULER_ROUND_ROBIN
     __asm("BL rtosScheduler_RoundRobin");
     #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
     __asm("BL rtosScheduler_RoundRobinWeighted");
     #endif
-    //restore R0,LR
+
+    //Restore the EXC_RETURN value back into LR
+    //pop R0,LR
     __asm("POP {R0,LR}");
 
+    //Reload the address of pcurrent which now points to the new task
+    __asm("LDR R0, =pcurrent");
     //load address of the next TCB in R1 (from address at R0)
     __asm("LDR R1, [R0]");
-    //Load the SP from the TCB into Cortex-M SP
+    //Load the SP from the new task's TCB into the MSP
     __asm("LDR SP, [R1]");
-    //Restore R4-R11 into the next task
+    
+    //Restore R4-R11 from the new task's stack
     __asm("POP {R4-R11}");
     
-    
-    //Enable all global Interrupts
     ENABLE_IRQ();
 
-    //go to the next task
+    //Return from exception, automatic pop of registers R0-R3, R12, LR, PC, xPSR
     __asm("BX LR");
 }
