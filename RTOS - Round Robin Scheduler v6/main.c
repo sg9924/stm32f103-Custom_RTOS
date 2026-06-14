@@ -5,7 +5,7 @@
 
 
 
-tcb_t* tcb_list[NO_OF_TASKS+1];
+tcb_t* tcb_list[NO_OF_TASKS];
 
 
 void gpio_led_init()
@@ -26,9 +26,8 @@ void task1(void)
 {
     while(1)
     {
-        Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[0]->task_id, tcb_list[0]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN4);
-        //taskDelay(MS_TO_TICK(500));
         tim_delay_ms(500);
     }
 }
@@ -37,9 +36,8 @@ void task2(void)
 {
     while(1)
     {
-        Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN5);
-        //taskDelay(MS_TO_TICK(510));
         tim_delay_ms(510);
     }
 }
@@ -49,9 +47,8 @@ void task3(void)
 {
     while(1)
     {
-        Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[3]->task_id, tcb_list[3]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN6);
-        //taskDelay(MS_TO_TICK(520));
         tim_delay_ms(520);
     }
 }
@@ -67,15 +64,15 @@ int main(void)
 
     //Round Robin
     //Add the tasks
-    taskAdd(&task1, "Task 1", &tcb_list[1]);
-    taskAdd(&task2, "Task 2", &tcb_list[2]);
-    taskAdd(&task3, "Task 3", &tcb_list[3]);
+    tcb_list[0] = taskAdd(&task1, "Task 1");
+    tcb_list[1] = taskAdd(&task2, "Task 2");
+    tcb_list[2] = taskAdd(&task3, "Task 3");
 
     /*
     //Round Robin Weighted
-    taskAdd_Weighted(&task1, "Task 1", 1, &tcb_list[1]);
-    taskAdd_Weighted(&task2, "Task 2", 1, &tcb_list[2]);
-    taskAdd_Weighted(&task3, "Task 3", 1, &tcb_list[3]);
+    tcb_list[0] = taskAdd_Weighted(&task1, "Task 1", 1);
+    tcb_list[1] = taskAdd_Weighted(&task2, "Task 2", 1);
+    tcb_list[2] = taskAdd_Weighted(&task3, "Task 3", 1);
     */
 
     //Launch Kernel
