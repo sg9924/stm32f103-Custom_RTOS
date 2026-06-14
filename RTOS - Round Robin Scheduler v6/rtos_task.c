@@ -1,6 +1,5 @@
 #include "rtos_kernel.h"
 #include "rtos_task.h"
-#include "rtos_queue.h"
 #include "rtos_port.h"
 
 tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's

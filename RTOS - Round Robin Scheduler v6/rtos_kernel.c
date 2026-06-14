@@ -11,13 +11,202 @@
 
 extern tcb_t  TCBS[NO_OF_TASKS+1];                 //an array of TCB's
 extern tcb_t *pcurrent;                           //current pointer to a tcb
-extern tcb_t* ready_queue[1];
-extern tcb_t* blocked_queue[1];
+
 int32_t       TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
+tcb_t*        ready_queue[1];
+tcb_t*        blocked_queue[1];
+
+
+
+static void ready_queue_init();
+static void ready_queue_reset();
+static uint8_t ready_queue_check_empty();
+
+static void blocked_queue_init();
+static uint8_t blocked_queue_check_empty();
+static uint8_t blocked_queue_check(tcb_t* task);
+
+
+static void rtosKernel_TaskStackInit(uint8_t task_num);
+static void rtosKernel_StackInit(void);
+static void rtosKernel_TaskInit(void);
+__attribute__((naked)) static void rtosScheduler_Launch(void);
 
 
 
 
+/****************************************************Ready Queue APIs Start*****************************************************/
+static void ready_queue_init()
+{
+    ready_queue[0] = NULL;
+}
+
+
+static void ready_queue_reset()
+{
+    for(uint8_t i=1; i<NO_OF_TASKS+1; i++)
+    {
+        //if task is not in blocked queue
+        if(blocked_queue_check(&TCBS[i]) != 1)
+            ready_queue_add(&TCBS[i]);
+    }
+}
+
+
+static uint8_t ready_queue_check_empty()
+{
+    if(ready_queue[0] == NULL)
+        return 1;
+    else
+        return 0; 
+}
+
+
+void ready_queue_add(tcb_t* task)
+{
+    //set state as ready
+    task->task_state = TASK_STATE_READY;
+    task->pnext      = NULL;
+
+    if(ready_queue[0] == NULL)
+        ready_queue[0] = task;
+    else
+    {
+        //get the starting task of the specific priority
+        tcb_t* i = ready_queue[0];
+
+        //iterate till the end of the linked list
+        while(i->pnext != NULL) i = i->pnext;
+
+        //add the task to the last node in the queue
+        i->pnext = task;
+    }
+}
+
+
+uint8_t ready_queue_remove(tcb_t* task, uint8_t state)
+{
+    if(ready_queue[0] != NULL)
+    {
+        //get the starting task of the specific priority
+        tcb_t* i = ready_queue[0];
+
+        //starting task of queue matches
+        if(i == task)
+        {
+            i->task_state = state;
+            ready_queue[0] = i->pnext;
+        }
+        //first task didn't match
+        else
+        {   
+            //iterate
+            while(i->pnext != NULL)
+            {
+                if(i->pnext == task)
+                {
+                    (i->pnext)->task_state = state;
+                    i = (i->pnext)->pnext;
+                    return 1;
+                }
+                i = i->pnext;
+            }
+        }
+    }
+    return 0;
+}
+/****************************************************Ready Queue APIs End*******************************************************/
+
+/***************************************************Blocked Queue APIs Start****************************************************/
+static void blocked_queue_init()
+{
+    blocked_queue[0] = NULL;
+}
+
+static uint8_t blocked_queue_check_empty()
+{
+    if(blocked_queue[0] == NULL)
+        return 1;
+    else
+        return 0;
+}
+
+
+
+static uint8_t blocked_queue_check(tcb_t* task)
+{
+    tcb_t* t = blocked_queue[0];
+
+    while(t != NULL)
+    {
+        if(t == task) return 1;
+        else break;
+
+        t = t->pnext;
+    }
+    return 0;
+}
+
+
+
+void blocked_queue_add(tcb_t* task)
+{
+    //set state as blocked
+    task->task_state = TASK_STATE_BLOCKED;
+    task->pnext      = NULL;
+
+    if(blocked_queue[0] == NULL)
+        blocked_queue[0] = task;
+    else
+    {
+        //get the starting task of the specific priority
+        tcb_t* i = blocked_queue[0];
+
+        //iterate till the end of the linked list
+        while(i->pnext != NULL) i = i->pnext;
+
+        //add the task to the last node in the queue
+        i->pnext = task;
+    }
+}
+
+
+
+uint8_t blocked_queue_remove(tcb_t* task, uint8_t state)
+{
+    if(blocked_queue[0] != NULL)
+    {
+        //get the starting task of the specific priority
+        tcb_t* i = blocked_queue[0];
+
+        //starting task of queue matches
+        if(i == task)
+        {
+            i->task_state = state;
+            i->block_tick = 0;
+            blocked_queue[0] = i->pnext;
+        }
+        //first task didn't match
+        else
+        {   
+            //iterate
+            while(i->pnext != NULL)
+            {
+                if(i->pnext == task)
+                {
+                    (i->pnext)->task_state = state;
+                    (i->pnext)->block_tick = 0;
+                    i = (i->pnext)->pnext;
+                    return 1;
+                }
+                i = i->pnext;
+            }
+        }
+    }
+    return 0;
+}
+/**************************************************Blocked Queue APIs End***************************************************/
+//Assert
 uint8_t assert(uint8_t condition, char* assert_msg)
 {
     if(condition == 0) //assert failed
@@ -30,10 +219,8 @@ uint8_t assert(uint8_t condition, char* assert_msg)
     else //assert succeeded
         return 1;
 }
-
-
-
-void rtosKernel_TaskStackInit(uint8_t task_num)
+/*******************************************************Kernel APIs Start****************************************************/
+static void rtosKernel_TaskStackInit(uint8_t task_num)
 {
     //initialize stack pointer
     TCBS[task_num].pstack = &(TCBS_STACK[task_num][STACKSIZE-16]);
@@ -55,7 +242,7 @@ void rtosKernel_TaskStackInit(uint8_t task_num)
 
 
 //RTOS Kernel Stack Initialize
-void rtosKernel_StackInit(void)
+static void rtosKernel_StackInit(void)
 {
     //initialize the stack of each task
     for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
@@ -65,7 +252,7 @@ void rtosKernel_StackInit(void)
 }
 
 
-void rtosKernel_TaskInit(void)
+static void rtosKernel_TaskInit(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
     DISABLE_IRQ();
@@ -110,7 +297,9 @@ void rtosKernel_Launch(uint32_t quanta)
     else
         SYSTICK_LOAD((quanta * ((RCC_Get_SYSCLK()/8)/1000)) - 1);
 
-    SCB->SHPR3 |= 0xFF<<24; //set lowest priority for systick handler
+    //Set Systick to Lowest Priority
+    SCB->SHPR3 &= ~(0xFFFF0000UL);
+    SCB->SHPR3 |= (0xFFUL << 24);
 
     SYSTICK_ENABLE_INTERRUPT();
 
@@ -140,9 +329,9 @@ void rtosKernel_Launch(uint32_t quanta)
     //Launch Scheduler
     rtosScheduler_Launch();
 }
+/*******************************************************Kernel APIs End****************************************************/
 
-
-
+/*****************************************************Scheduler APIs Start*************************************************/
 void rtosScheduler_RoundRobin(void)
 {
     uint8_t state = TASK_STATE_BLOCKED;
@@ -266,7 +455,7 @@ void rtosScheduler_RoundRobinWeighted(void)
 
 
 
-__attribute__((naked)) void rtosScheduler_Launch(void)
+__attribute__((naked)) static void rtosScheduler_Launch(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
     DISABLE_IRQ();
@@ -299,9 +488,7 @@ __attribute__((naked)) void rtosScheduler_Launch(void)
     //go to the task
     __asm("BX LR");
 }
-
-
-
+/*****************************************************Scheduler APIs End*************************************************/
 __attribute__((naked)) void SysTick_Handler(void)
 {
     //Disable all global Interrupts
