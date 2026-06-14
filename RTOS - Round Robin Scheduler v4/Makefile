@@ -36,7 +36,7 @@ LINK=bp_linker.ld
 RTOS=rtos_kernel.o rtos_task.o rtos_info.o Semaphore.o
 DRIVERS=stm32f103xx_gpio.o stm32f103xx_afio.o stm32f103xx_exti.o stm32f103xx_nvic.o \
         stm32f103xx_usart.o stm32f103xx_rcc.o stm32f103xx_systick.o stm32f103xx_timer.o \
-		stm32f103xx_faults.o
+		stm32f103xx_faults.o stm32f103xx_flash.o stm32f103xx_fault_handlers.o
 OTHERS=stm32f103xx_init.o stm32f103xx_serial.o stm32f103xx_utilities.o
 #MIDDLEWARE=
 
@@ -72,7 +72,11 @@ stm32f103xx_rcc.o:$(SRC_DIR)/stm32f103xx_rcc.c
 	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
 stm32f103xx_timer.o:$(SRC_DIR)/stm32f103xx_timer.c
 	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
+stm32f103xx_flash.o:$(SRC_DIR)/stm32f103xx_flash.c
+	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
 stm32f103xx_faults.o:$(SRC_DIR)/stm32f103xx_faults.c
+	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
+stm32f103xx_fault_handlers.o:$(SRC_DIR)/stm32f103xx_fault_handlers.c
 	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
 stm32f103xx_init.o:$(SRC_DIR)/stm32f103xx_init.c
 	$(CC) $(CFLAGS) $(DEBUG_FLAG) $^ -o $@
