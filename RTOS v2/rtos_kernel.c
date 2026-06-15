@@ -13,8 +13,8 @@ extern tcb_t *pcurrent;                                 //current pointer to a t
 
 
 int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];           //array for stack for each Task
-tcb_t* ready_queue[TASK_MAX_NO_OF_PRIORITY];            //ready queues for each priority
-tcb_t* blocked_queue[TASK_MAX_NO_OF_PRIORITY];          //blocked queues for each priority
+tcb_t* ready_queue[MAX_NO_OF_PRIORITY];            //ready queues for each priority
+tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];          //blocked queues for each priority
 
 
 static void ready_queue_init();
@@ -40,7 +40,7 @@ static void rtosScheduler_Priority(void);
 static void ready_queue_init()
 {
     #if SCHEDULER == SCHEDULER_PRIORITY
-    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
         ready_queue[i] = NULL;
     #elif SCHEDULER == SCHEDULER_ROUND_ROBIN || SCHEDULER == SCHEDULER_RR_WEIGHTED
     ready_queue[0] = NULL;
@@ -62,7 +62,7 @@ static void ready_queue_reset()
 static uint8_t ready_queue_check_empty()
 {
     #if SCHEDULER == SCHEDULER_PRIORITY
-    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
     {
         if(ready_queue[i] == NULL)
             continue;
@@ -152,7 +152,7 @@ uint8_t ready_queue_remove(tcb_t* task, uint8_t state)
 static void blocked_queue_init()
 {
     #if SCHEDULER == SCHEDULER_PRIORITY
-    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
         blocked_queue[i] = NULL;
     #elif SCHEDULER == SCHEDULER_ROUND_ROBIN || SCHEDULER == SCHEDULER_RR_WEIGHTED
     blocked_queue[0] = NULL;
@@ -162,7 +162,7 @@ static void blocked_queue_init()
 static uint8_t blocked_queue_check_empty()
 {
     #if SCHEDULER == SCHEDULER_PRIORITY
-    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
     {
         if(blocked_queue[i] == NULL)
             continue;
@@ -527,47 +527,69 @@ void rtosScheduler_RoundRobinWeighted(void)
 
 
 #if SCHEDULER == SCHEDULER_PRIORITY
-static void rtosScheduler_Priority(void)
+static void rtosScheduler_Priority()
 {
     int8_t state = TASK_STATE_BLOCKED;
+    uint8_t loop_priority = MAX_NO_OF_PRIORITY-1;
 
-    //set task state for finished task (not for idle task)
+    //current task - still running and its not a idle task
     if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)
+    {
+        //set loop limit for pirority
+        loop_priority = pcurrent->task_priority;
+        //set it as ready
         pcurrent->task_state = TASK_STATE_READY;
+        //add to ready queue
+        ready_queue_add(pcurrent);
+    }
+    //idle task
+    else if (pcurrent->task_id == 0)
+    {
+        pcurrent->task_state = TASK_STATE_READY;
+    }
 
-    //if the ready queue is empty before the next context switch, reset it
-    if(ready_queue_check_empty() == 1)
-        ready_queue_reset();
 
-    //loop through the queues starting with the highest priority (0) one
-    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
+    //loop through the queue starting with the highest priority (0) one
+    for(uint8_t i=0; i<=loop_priority; i++)
     {
         if(ready_queue[i] != NULL)
         {
-            //get the task
+            //get the next task in ready queue
             tcb_t* t = ready_queue[i];
 
-            //dequeue
-            ready_queue[i] = t->pnext;
-            t->pnext = NULL;
-
-            //set the new task as current
-            pcurrent = t;
-
-            //get its state
-            state = pcurrent->task_state;
-
-            //if the new task is ready and it is not a idle task
-            if(state == TASK_STATE_READY && pcurrent->task_id != 0)
+            //check priority
+            //high or equal priority - task preemption should occur
+            //current task is blocked - task preemption should occur
+            if(t->task_priority <= pcurrent->task_priority || pcurrent->task_state == TASK_STATE_BLOCKED)
             {
-                pcurrent->task_state = TASK_STATE_RUNNING;
-                return;
+                //dequeue the task
+                ready_queue[i] = t->pnext;
+                t->pnext = NULL;
+
+                //set the new task as current
+                pcurrent = t;
+
+                //get its state
+                state = pcurrent->task_state;
+
+                //if the new task is ready and it is not a idle task
+                if(state == TASK_STATE_READY && pcurrent->task_id != 0)
+                {
+                    pcurrent->task_state = TASK_STATE_RUNNING;
+                    return;
+                }
             }
         }
     }
 
-    //in case of idle task
-    pcurrent = getTask_Idle();
+    //loop through ready queue completed
+    //no task found to preempt & current task is blocked
+    //idle task should be selected for preemption
+    if(state == TASK_STATE_BLOCKED)
+    {
+        pcurrent = getTask_Idle();
+        pcurrent->task_state = TASK_STATE_RUNNING;
+    }
     return;
 }
 #endif

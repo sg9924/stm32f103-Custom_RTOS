@@ -1,3 +1,21 @@
-INITIAL:
+1. INITIAL:
     - Optimizations in Task Queue APIs for Ready and Blocked Queues
     - Improvements in Round Robin Schedulers
+
+2. PRIORITY SCHEDULER:
+    - Improvements and bug fixes
+    - Bugs:
+        - no strict priority checking
+        - tasks are added in the queue in right order only but not executed in right order in some cases
+        - during task execution, priority check is not enforced properly
+    - Bug Fixes:
+        - priority check has been enforced
+        - current task is immediately added to the ready queue for preemption
+        - ready queue empty check logic has been removed
+        - ready queue reset logic has been removed
+        - unnecessary looping through the tasks has been avoided
+
+3. TASK:
+    - task Reset Quota API improvement
+    - introduce taskBlock
+    - taskUnblock API improvements

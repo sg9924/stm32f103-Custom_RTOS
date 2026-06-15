@@ -3,19 +3,16 @@
 #include "rtos_port.h"
 
 
-
 //external variables
 extern uint32_t current_tick;
-extern tcb_t* ready_queue[TASK_MAX_NO_OF_PRIORITY];
-extern tcb_t* blocked_queue[TASK_MAX_NO_OF_PRIORITY];
-
+extern tcb_t* ready_queue[MAX_NO_OF_PRIORITY];
+extern tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];
 
 tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
 
 static ptask_t ptask_list[NO_OF_TASKS + 1];
 static uint8_t task_count;
-
 
 static void taskIdle(void);
 static void taskAdd_Check(uint8_t task_count);
@@ -42,7 +39,7 @@ static void taskAdd_Check(uint8_t task_count)
 
 
 #if SCHEDULER == SCHEDULER_ROUND_ROBIN
-void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle)
+tcb_t* taskAdd(ptask_t func_ptr, char* task_desc)
 {
     taskAdd_Check(task_count);
 
@@ -56,15 +53,14 @@ void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle)
     ready_queue_add(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
-    if(ptask_handle != NULL)
-        *ptask_handle = &TCBS[task_count++];
+    return &TCBS[task_count++];
 }
 #endif
 
 
 
 #if SCHEDULER == SCHEDULER_RR_WEIGHTED
-void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t** ptask_handle)
+tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
 {
     taskAdd_Check(task_count);
 
@@ -79,14 +75,13 @@ void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tc
     ready_queue_add(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
-    if(ptask_handle != NULL)
-        *ptask_handle = &TCBS[task_count++];
+    return &TCBS[task_count++];
 }
 #endif
 
 
 #if SCHEDULER == SCHEDULER_PRIORITY
-void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority, tcb_t** ptask_handle)
+tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority)
 {
     taskAdd_Check(task_count);
     
@@ -101,26 +96,32 @@ void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority, 
     ready_queue_add(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
-    if(ptask_handle != NULL)
-        *ptask_handle = &TCBS[task_count++];
+    return &TCBS[task_count++];
 }
 #endif
 
 
 
 #if SCHEDULER == SCHEDULER_RR_WEIGHTED
-void taskReset_Quota()
+void taskReset_Quota(tcb_t* task)
+{
+    if(!task) return;
+    if(task->task_state == TASK_STATE_READY || task->task_state == TASK_STATE_RUNNING)
+        task->task_quota = task->task_weight;
+}
+
+
+
+void taskReset_QuotaAll()
 {
     tcb_t* tcb = TCBS;
-
     if(!tcb) return;
-
-    for(uint8_t i=0; i<=NO_OF_TASKS; i++)
+    do
     {
         if(tcb->task_state == TASK_STATE_READY || tcb->task_state == TASK_STATE_RUNNING)
             tcb->task_quota = tcb->task_weight;
         tcb = tcb + 1;
-    }
+    }while(tcb <= (TCBS + NO_OF_TASKS));
 }
 #endif
 
@@ -133,9 +134,10 @@ void taskAdd_Idle()
     TCBS[0].task_desc   = "Idle Task";
     #if SCHEDULER == SCHEDULER_RR_WEIGHTED
     TCBS[0].task_weight = 1;
+    TCBS[0].task_quota  = 0;
     #endif
     #if SCHEDULER == SCHEDULER_PRIORITY
-    TCBS[0].task_priority = TASK_MAX_NO_OF_PRIORITY-1;  //lowest priority
+    TCBS[0].task_priority = MAX_NO_OF_PRIORITY-1;  //lowest priority
     #endif
     TCBS[0].block_tick  = 0;
 }
@@ -144,11 +146,24 @@ void taskAdd_Idle()
 
 void taskDelay(uint32_t tick)
 {
-    //for all tasks other than idle task
-    if(pcurrent->task_id)
+    taskBlock(NULL, tick);
+}
+
+
+void taskBlock(tcb_t* task, uint32_t timeout_tick)
+{
+    if(task == NULL)
+        task = pcurrent;
+    
+    if(task->task_id != 0 && task->task_state != TASK_STATE_BLOCKED)
     {
-        pcurrent->block_tick = current_tick + tick;
-        pcurrent->task_state = TASK_STATE_BLOCKED;
+        task->task_state = TASK_STATE_BLOCKED;
+
+        //set block ticks
+        task->block_tick = current_tick + timeout_tick;
+
+        //insert into blocked queue
+        blocked_queue_add(task);
 
         //Pend the systick Exception to switch to next task
         SYSTICK_EXCEPTION_PEND();
@@ -161,24 +176,49 @@ void taskIdle(void)
 {
     while(1)
     {
-        Serialprint("\r\nNo Tasks to run...", INFO);
+        Serialprintln("[Tick: %x] No Tasks to run...", INFO, Systick_get_tick());
     }
 }
 
 
-//to be corrected for the latest priority scheduler
+
 void taskUnblock(void)
 {
-    tcb_t* temp = pcurrent;
-    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    //for round robin, blocked_queue array always has one element only.
+    tcb_t* t = blocked_queue[0];
+    tcb_t* tprev = NULL;
+
+    //go through the tasks in the queue
+    while(t != NULL)
     {
-        if(temp->task_state == TASK_STATE_BLOCKED)
+        //check block tick
+        if(t->task_state == TASK_STATE_BLOCKED && t->block_tick == current_tick)
         {
-            if(temp->block_tick == current_tick)
-                temp->task_state = TASK_STATE_READY;
+            tcb_t* tnext = t->pnext;
+
+            //remove from blocked queue
+            //remove head
+            if(tprev == NULL)
+                blocked_queue[0] = tnext;
+            //remove middle or last
+            else
+                tprev->pnext = tnext;
+
+            //set task as ready
+            t->task_state = TASK_STATE_READY;
+            t->block_tick = 0;
+            t->pnext      = NULL;
+            
+            t = tnext;
         }
-        temp = temp->pnext;
+        //just traverse to next task
+        else
+        {
+            tprev = t;
+            t = t->pnext;
+        }
     }
+    return;
 }
 
 

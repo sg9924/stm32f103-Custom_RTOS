@@ -34,23 +34,34 @@ typedef struct tcb
 
 void __task_count_init(void);
 
-void taskAdd(ptask_t func_ptr, char* task_desc, tcb_t** ptask_handle);
-void taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, tcb_t** ptask_handle);
-void taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority, tcb_t** ptask_handle);
+#if SCHEDULER == SCHEDULER_RR_WEIGHTED
+tcb_t* taskAdd(ptask_t func_ptr, char* task_desc);
+#elif SCHEDULER == SCHEDULER_RR_WEIGHTED
+tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight);
+#elif SCHEDULER == SCHEDULER_PRIORITY
+tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority);
+#endif
 void taskAdd_Idle();
 
 
-void taskReset_Quota();
 void taskDelay(uint32_t tick);
+void taskBlock(tcb_t* task, uint32_t timeout_tick);
 void taskUnblock(void);
 void taskYield(void);
+
+#if SCHEDULER == SCHEDULER_RR_WEIGHTED
+void taskReset_Quota(tcb_t* task);
+void taskReset_QuotaAll();
+#endif
 
 ptask_t getTaskFunc(uint8_t task_num);
 ptask_t* getTaskFunc_List();
 
 tcb_t* getTask_Idle();
 tcb_t* getTask_List();
-tcb_t* getTask_Priority(uint8_t priority);
 uint8_t getTask_Count();
+#if SCHEDULER == SCHEDULER_PRIORITY
+tcb_t* getTask_Priority(uint8_t priority);
+#endif
 
 #endif
