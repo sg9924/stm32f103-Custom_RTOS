@@ -115,7 +115,7 @@ void taskReset_QuotaAll()
 void taskAdd_Idle()
 {
     TCBS[0].ptask_func                 = &taskIdle;
-    TCBS[task_count].task_state        = TASK_STATE_READY;
+    TCBS[0].task_state                 = TASK_STATE_READY;
     TCBS[0].task_desc                  = "Idle Task";
     TCBS[0].task_id                    = 0;
     TCBS[0].task_weight                = 1;
