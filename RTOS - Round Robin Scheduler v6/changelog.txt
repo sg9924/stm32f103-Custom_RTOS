@@ -19,14 +19,16 @@
     - modified taskReset_Quota: resets quota for a specific task
     - new API: taskReset_QuotaAll
     - - RR and RR Weighted Scheduler improvements and bug fixes
+    
 4: TASK
     - Added return in taskAdd_Priority to return the TCB of the task being added which can be used later in the main program
 
 5: QUEUE (Ready and Blocked Queues for Tasks)
-    - Move the APIs from `rtos_queue` into `rtos_kernel`
-    - `rtos_queue` will be used later for implementing Queues for Inter Task Communication
+    - Move the APIs from `rtos_queue` into rtos_kernel
+    - rtos_queue will be used later for implementing Queues for Inter Task Communication
     - Cleanup kernel header
     - Remove rtos_queue header from rtos_task source
+
 6: PENDSV Handler
     - Introduce PendSV Exception Handler
     - PendSV Handler manages the context switch and the scheduler function call. This is a naked function.
