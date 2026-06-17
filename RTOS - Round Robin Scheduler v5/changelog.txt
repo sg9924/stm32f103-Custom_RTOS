@@ -9,3 +9,6 @@
     - bug fixes:
         - logic fixed to handle both head and middle or last node in queue scenarios
         - return has been removed and placed outside the loop
+
+3: BUG FIX
+    - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM

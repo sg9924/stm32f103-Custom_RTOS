@@ -175,7 +175,7 @@ uint32_t vectors[] __attribute__((section(".isr_vector"))) = {
 void Reset_Handler(void)
 {
 	// copy .data section to SRAM
-	uint32_t size = &_edata - &_sdata; // we need to access the address represented by the symbol and not the value stored in that address
+	uint32_t size = (uint8_t*)&_edata - (uint8_t*)&_sdata; // we need to access the address represented by the symbol and not the value stored in that address
 	uint8_t *pDst = (uint8_t*)&_sdata; //sram
 	uint8_t *pSrc = (uint8_t*)&_la_data; //flash
 	

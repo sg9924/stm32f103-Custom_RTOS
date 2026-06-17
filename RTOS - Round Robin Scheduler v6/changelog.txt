@@ -36,3 +36,6 @@
     - This implementation provides the correct response to a task yield call.
         - In the previous implementation where we were using only the systick handler to manage everything: context switch, scheduler call, systick increment and the task unblocking.
         - invoking the task yield artificially accelerates the tick, as we are intentionally invoking the systick exception instead of letting it happen according to the configuration whether its 1 ms or 10 ms...
+
+7: BUG FIX
+    - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
