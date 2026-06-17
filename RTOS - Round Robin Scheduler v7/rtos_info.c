@@ -1,0 +1,38 @@
+#include "rtos_info.h"
+#include "rtos_kernel.h"
+#include "rtos_config.h"
+#include "rtos_task.h"
+#include "rtos_port.h"
+
+
+
+char* rtosInfo_Scheduler(void)
+{
+    #if SCHEDULER == SCHEDULER_ROUND_ROBIN
+        return "ROUND ROBIN";
+    #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
+        return "ROUND ROBIN WEIGHTED";
+    #endif
+}
+
+
+void rtosInfo_Tasks(void)
+{
+    tcb_t* temp = getTask_List();
+    Serialprintln("--------------------------------RTOS Tasks Info--------------------------------", INFO);
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    {
+        #if SCHEDULER == SCHEDULER_ROUND_ROBIN
+        Serialprintln("Task ID: %d | Task Address: %x | Task Description: %s", INFO, temp->task_id, temp, temp->task_desc);
+        #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
+        Serialprintln("Task ID: %d | Task Address: %x | Task Description: %s | Task Weight: %d", INFO, temp->task_id, temp, temp->task_desc, temp->task_weight);
+        #elif SCHEDULER == SCHEDULER_PRIORITY
+        Serialprintln("Task ID: %d | Task Address: %x | Task Description: %s | Task Priority: %d", INFO, temp->task_id, temp, temp->task_desc, temp->task_priority);
+        #endif
+        temp +=1;
+    }
+    Serialprintln("-------------------------------------------------------------------------------", INFO);
+
+    Serialprintln("Starting the %s Scheduler now in %d seconds...\r\n", INFO, rtosInfo_Scheduler(), (RTOS_SCHEDULER_START_DELAY/1000));
+    tim_delay_ms(RTOS_SCHEDULER_START_DELAY);
+}
