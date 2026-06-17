@@ -19,3 +19,6 @@
     - task Reset Quota API improvement
     - introduce taskBlock
     - taskUnblock API improvements
+
+4: BUG FIX
+    - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
