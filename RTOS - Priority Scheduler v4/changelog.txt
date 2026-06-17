@@ -39,3 +39,6 @@
             - ready queue add after blocked queue remove introduced
         - Task:
             - add the ready queue add function in task unblock
+
+4: BUG FIX
+    - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM

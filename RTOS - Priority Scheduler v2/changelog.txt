@@ -43,3 +43,6 @@
             - ready queue reset logic has been removed
             - unnecessary looping through the tasks has been avoided
             - logic has been introduced to configure systick based on clock source
+
+6: BUG FIX
+    - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM

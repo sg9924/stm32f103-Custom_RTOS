@@ -9,3 +9,6 @@
 
 2: TASK
     - Added return in taskAdd_Priority to return the TCB of the task being added which can be used later in the main program
+
+3: BUG FIX
+    - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
