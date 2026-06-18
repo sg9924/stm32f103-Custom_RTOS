@@ -6,6 +6,9 @@
         - taskAdd APIs have a new parameter - stack_size_word, this argument will be ignored when the RTOS is configured to use the common stack size
     - Kernel
         - New API: Stack_Allocate(uint32_t size_in_words), used to allocate the stack for each task, basically a arena allocator but not actually dynamic memory allocation
-          just yet. Late,r the first heap of Arena Allocator type will be added and this code will be modified to use that
+          just yet. Later the first heap of Arena Allocator type will be added and this code will be modified to use that
         - rtosKernel_TaskStackInit has been modified to handle the Stack Init for both stack configuration options
-        - minor modification in assert API 
+        - minor modification in assert API
+
+2: KERNEL
+    - Improved rtosKernel_TaskStackInit API code

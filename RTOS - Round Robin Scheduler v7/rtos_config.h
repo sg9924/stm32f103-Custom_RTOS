@@ -11,7 +11,8 @@
 #define STACK_TYPE_COMMON                             0U
 #define STACK_TYPE_INDIVIDUAL                         1U
 
-
+//Configurations
+//Systick
 #define TASK_QUANTA_MS                                1
 #define TICK_RATE_HZ                                  (1000/TASK_QUANTA_MS)
 
@@ -21,7 +22,7 @@
 
 
 //Stack Configurations
-#define STACK_TYPE                                    STACK_TYPE_INDIVIDUAL
+#define STACK_TYPE                                    STACK_TYPE_COMMON
 
 #if STACK_TYPE == STACK_TYPE_COMMON
 #define STACKSIZE                                     200

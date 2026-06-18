@@ -253,32 +253,20 @@ uint32_t* Stack_Allocate(uint32_t size_in_words)
 static void rtosKernel_TaskStackInit(uint8_t task_num)
 {
     #if STACK_TYPE == STACK_TYPE_COMMON
-    //initialize stack pointer
+    uint32_t* pstack = &(TCBS_STACK[task_num][STACKSIZE-1]);  //Stack Top of the Current Task
+    //initialize stack pointer with the registers pushed into the task stack for scheduler launch
     TCBS[task_num].pstack = &(TCBS_STACK[task_num][STACKSIZE-16]);
-
-    //set T bit (bit 24) in xPSR to indicate Thumb state
-    TCBS_STACK[task_num][STACKSIZE-1] = (1<<24);                               //xPSR
-
-    //initialize PC and LR
-    TCBS_STACK[task_num][STACKSIZE-2] = (int32_t) (TCBS[task_num].ptask_func); //PC - task function address
-    TCBS_STACK[task_num][STACKSIZE-3]  = 0xFFFFFFF9;                           //LR - Return to Thread mode and use MSP (not yet introduced PSP for tasks)
-
-    //initializing stack with dummy contents for other registers
-    for(int16_t i=4; i<=16; i++)
-    {
-        TCBS_STACK[task_num][STACKSIZE-i]  = 0;         //Dummy values
-    }
-
-    //stack coloring for rest of the stack
-    for(int16_t i=17; i<=STACKSIZE; i++)
-    {
-        TCBS_STACK[task_num][STACKSIZE-i]  = STACKCOLOR_VALUE; //Stack Color Value
-    }
     #elif STACK_TYPE == STACK_TYPE_INDIVIDUAL
-    uint32_t* pstack = TCBS[task_num].pstack;  //Top of the Task Stack
+    //Get Stack Top
+    uint32_t* pstack = TCBS[task_num].pstack;
+    pstack--;                                                 //Stack Top of the Current Task
+    //reassign stack pointer with the registers pushed into the task stack for scheduler launch
+    TCBS[task_num].pstack = (uint32_t*)((uint32_t)TCBS[task_num].pstack - (16*4));
+    #endif
+
 
     //set T bit (bit 24) in xPSR to indicate Thumb state
-    pstack--; *pstack = (1<<24);                               //xPSR
+    *pstack = (1<<24);                                         //xPSR
 
     //initialize PC and LR
     pstack--; *pstack = (int32_t)(TCBS[task_num].ptask_func);  //PC - task function address
@@ -295,10 +283,6 @@ static void rtosKernel_TaskStackInit(uint8_t task_num)
     {
         pstack--; *pstack  = STACKCOLOR_VALUE;                 //Stack Color Value
     }
-
-    //reassign pstack with the registers pushed into the task stack for scheduler launch
-    TCBS[task_num].pstack = (uint32_t*)((uint32_t)TCBS[task_num].pstack - (16*4));
-    #endif
 }
 
 
