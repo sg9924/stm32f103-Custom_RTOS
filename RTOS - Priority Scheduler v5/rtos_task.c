@@ -8,15 +8,13 @@ extern uint32_t current_tick;
 extern tcb_t* ready_queue[MAX_NO_OF_PRIORITY];
 extern tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];
 
-tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
+tcb_t TCBS[NO_OF_TASKS + 1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
 
 static ptask_t ptask_list[NO_OF_TASKS + 1];
 static uint8_t task_count;
 
 static void taskIdle(void);
-
-
 
 
 void __task_count_init(void)
@@ -26,7 +24,7 @@ void __task_count_init(void)
 
 
 
-tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority)
+tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority, uint8_t stack_size_word)
 {
     if(task_count>NO_OF_TASKS)
     {
@@ -43,6 +41,14 @@ tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority
     TCBS[task_count].task_desc           = task_desc;
     TCBS[task_count].task_priority       = task_priority;
     TCBS[task_count].block_tick          = 0;
+
+    #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
+    TCBS[task_count].stack_size_word   = stack_size_word;
+    TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
+    assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
+    assert((stack_size_word == 0), "Invalid Stack Size during Task Add");
+    #endif
+    
     ready_queue_add(&TCBS[task_count]);
     taskNotify_Reset(&TCBS[task_count]);
 
@@ -57,7 +63,13 @@ void taskAdd_Idle()
     TCBS[0].ptask_func    = &taskIdle;
     TCBS[0].task_desc     = "Idle Task";
     TCBS[0].task_id       = 0;
-    TCBS[0].task_priority = MAX_NO_OF_PRIORITY-1; //lowest priority
+    TCBS[0].task_priority = MAX_NO_OF_PRIORITY -1 ; //lowest priority
+
+    #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
+        TCBS[0].stack_size_word    = 50;
+        TCBS[0].pstack             = Stack_Allocate(50);
+        assert((TCBS[0].pstack!=NULL), "Stack Allocation Failure");
+    #endif
 }
 
 

@@ -12,7 +12,7 @@ extern tcb_t TCBS[NO_OF_TASKS+1];                 //an array of TCB's
 extern tcb_t *pcurrent;                           //current pointer to a tcb
 
 
-int32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];     //array for stack for each Task
+uint32_t TCBS_STACK[NO_OF_TASKS+1][STACKSIZE];    //array for stack for each Task
 tcb_t* ready_queue[MAX_NO_OF_PRIORITY];           //ready queues for each priority
 tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];         //blocked queues for each priority
 
@@ -247,22 +247,62 @@ uint8_t assert(uint8_t condition, char* assert_msg)
         return 1;
 }
 /*******************************************************Kernel APIs Start****************************************************/
+#if STACK_TYPE == STACK_TYPE_INDIVIDUAL
+uint32_t* Stack_Allocate(uint32_t size_in_words)
+{
+    //Align to 8 bytes
+    stack_pool_index  = WORD_ALIGN_8BYTE(stack_pool_index);
+    size_in_words     = WORD_ALIGN_8BYTE(size_in_words);
+
+    //check for overflow
+    if(stack_pool_index + size_in_words > STACK_MAX_POOLSIZE)
+        return NULL; //Out of Memory
+
+    //get pointer to memory just after the last allocated task stack memory
+    //this pointer returns the lower memory address
+    uint32_t* new_ptr = &TCBS_STACK_POOL[stack_pool_index];
+
+    //update the pool index
+    stack_pool_index += size_in_words;
+
+    //return the higher memory address outside the new block as the stack is descending with decrement first
+    return (new_ptr + size_in_words);
+}
+#endif
+
 //Task Stack Initialize
 static void rtosKernel_TaskStackInit(uint8_t task_num)
 {
-    //initialize stack pointer
+        #if STACK_TYPE == STACK_TYPE_COMMON
+    uint32_t* pstack = &(TCBS_STACK[task_num][STACKSIZE-1]);  //Stack Top of the Current Task
+    //initialize stack pointer with the registers pushed into the task stack for scheduler launch
     TCBS[task_num].pstack = &(TCBS_STACK[task_num][STACKSIZE-16]);
+    #elif STACK_TYPE == STACK_TYPE_INDIVIDUAL
+    //Get Stack Top
+    uint32_t* pstack = TCBS[task_num].pstack;
+    pstack--;                                                 //Stack Top of the Current Task
+    //reassign stack pointer with the registers pushed into the task stack for scheduler launch
+    TCBS[task_num].pstack = (uint32_t*)((uint32_t)TCBS[task_num].pstack - (16*4));
+    #endif
+
 
     //set T bit (bit 24) in xPSR to indicate Thumb state
-    TCBS_STACK[task_num][STACKSIZE-1] = (1<<24);
+    *pstack = (1<<24);                                         //xPSR
 
     //initialize PC and LR
-    TCBS_STACK[task_num][STACKSIZE-2] = (int32_t) (TCBS[task_num].ptask_func); //PC - task function address
-    TCBS_STACK[task_num][STACKSIZE-3]  = 0xFFFFFFF9;               //LR - Return to Thread mode and use MSP
+    pstack--; *pstack = (int32_t)(TCBS[task_num].ptask_func);  //PC - task function address
+    pstack--; *pstack = 0xFFFFFFF9;                            //LR - Return to Thread mode and use MSP (not yet introduced PSP for tasks)
+
     //initializing stack with dummy contents for other registers
-    for(uint8_t i=4; i<=STACKSIZE; i++)
+    for(int16_t i=4; i<=16; i++)
     {
-        TCBS_STACK[task_num][STACKSIZE-i]  = 0xDEADBEEF; //Dummy values
+        pstack--; *pstack  = 0;                                //Dummy values
+    }
+
+    //stack coloring for rest of the stack
+    for(int16_t i=17; i<=TCBS[task_num].stack_size_word; i++)
+    {
+        pstack--; *pstack  = STACKCOLOR_VALUE;                 //Stack Color Value
     }
 }
 

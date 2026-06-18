@@ -27,7 +27,8 @@ typedef void(*ptask_t)(void);       //task function pointer
 //!order of structure members should not be changed!
 typedef struct tcb
 {
-    int32_t*     pstack;                             //pointer to the stack
+    uint32_t*    pstack;                             //pointer to the stack
+    uint8_t      stack_size_word;                    //size of task stack in words
     struct tcb*  pnext;                              //pointer to the next tcb structure (linked list)
     ptask_t      ptask_func;                         //pointer to the task function
     uint8_t      task_id;
@@ -41,7 +42,7 @@ typedef struct tcb
 
 void __task_count_init(void);
 void taskAdd_Idle();
-tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority);
+tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority, uint8_t stack_size_word);
 
 
 void taskDelay(uint32_t tick);

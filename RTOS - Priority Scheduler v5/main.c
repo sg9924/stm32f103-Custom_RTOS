@@ -64,9 +64,9 @@ int main(void)
     gpio_led_init();
 
     //Lower numbers are higher priority
-    task[0] = taskAdd_Priority(&task1, "Task 1 - Red LED", 0);
-    task[1] = taskAdd_Priority(&task2, "Task 2 - Yellow LED", 1);
-    task[2] = taskAdd_Priority(&task3, "Task 3 - Green LED", 2);
+    task[0] = taskAdd_Priority(&task1, "Task 1 - Red LED", 0, 100);
+    task[1] = taskAdd_Priority(&task2, "Task 2 - Yellow LED", 1, 100);
+    task[2] = taskAdd_Priority(&task3, "Task 3 - Green LED", 2, 70);
 
     //Launch Kernel
     rtosKernel_Launch(TASK_QUANTA_MS);

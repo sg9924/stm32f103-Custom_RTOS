@@ -19,6 +19,9 @@ void rtosKernel_Init();
 void rtosKernel_Launch(uint32_t quanta);
 
 uint8_t assert(uint8_t condition, char* assert_msg);
+#if STACK_TYPE == STACK_TYPE_INDIVIDUAL
+uint32_t* Stack_Allocate(uint32_t size_in_words);
+#endif
 
 void ready_queue_add(tcb_t* task);
 uint8_t ready_queue_remove(tcb_t* task, uint8_t state);

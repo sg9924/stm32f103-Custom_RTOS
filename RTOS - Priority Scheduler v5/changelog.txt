@@ -12,3 +12,14 @@
 
 3: BUG FIX
     - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
+4: KERNEL, TASK
+    - Added support for individual unique stack size for each task
+    - common stack size is also present
+    - config is provided to switch between the 2 options
+    - Task
+        - taskAdd APIs have a new parameter - stack_size_word, this argument will be ignored when the RTOS is configured to use the common stack size
+    - Kernel
+        - New API: Stack_Allocate(uint32_t size_in_words), used to allocate the stack for each task, basically a arena allocator but not actually dynamic memory allocation
+          just yet. Later the first heap of Arena Allocator type will be added and this code will be modified to use that
+        - rtosKernel_TaskStackInit has been modified to handle the Stack Init for both stack configuration options
+        - minor modification in assert API
