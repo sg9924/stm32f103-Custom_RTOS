@@ -4,7 +4,7 @@
 #include "rtos_config.h"
 #include "stm32f103xx_utilities.h"
 
-tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
+tcb_t TCBS[NO_OF_TASKS + 1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
 
 static ptask_t ptask_list[NO_OF_TASKS + 1];
@@ -15,6 +15,8 @@ extern tcb_t* ready_queue[1];
 extern tcb_t* blocked_queue[1];
 
 static void taskAdd_Check(uint8_t task_count);
+static void taskIdle(void);
+
 
 void __task_count_init(void)
 {

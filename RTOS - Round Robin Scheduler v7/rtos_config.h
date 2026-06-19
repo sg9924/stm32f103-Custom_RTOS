@@ -23,6 +23,7 @@
 
 //Stack Configurations
 #define STACK_TYPE                                    STACK_TYPE_COMMON
+#define STACKCOLOR_VALUE                              0xDEADBEEF
 
 #if STACK_TYPE == STACK_TYPE_COMMON
 #define STACKSIZE                                     200
@@ -30,14 +31,11 @@
 #define STACK_MAX_POOLSIZE                            512                   //no of words
 #endif
 
-#define STACKCOLOR_VALUE                              0xDEADBEEF
-
 //Scheduler Configurations
 #define RTOS_SCHEDULER_START_DELAY                    3000
 #define SCHEDULER                                     SCHEDULER_ROUND_ROBIN
 
 
-//Configurations
 //0 - disabled
 //1 - enabled
 
