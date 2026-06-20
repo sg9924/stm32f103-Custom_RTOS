@@ -48,7 +48,6 @@ typedef struct tcb
 
 void __task_count_init(void);
 
-void taskIdle(void);
 tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word);
 tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, uint8_t stack_size_word);
 void taskAdd_Idle();

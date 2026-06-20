@@ -5,7 +5,7 @@
 #include<stddef.h>
 
 #include"rtos_task.h"
-
+#include"stm32f103xx_utilities.h"
 
 
 typedef struct task_node_t
@@ -39,6 +39,12 @@ typedef struct
 }Queue_t;
 
 
+
+//Macros
+#define _QUEUE_BUFFER_ADDR(Q_PTR, INDEX)                             ((uint32_t)(Q_PTR)->buffer + ((INDEX) * (Q_PTR)->element_size))
+
+
+//APIs
 Queue_t* queueCreateStatic(size_t element_size, size_t length, Queue_t* q, uint8_t* buffer);
 
 bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick);
@@ -49,14 +55,6 @@ bool queueIsFull(Queue_t *q);
 bool queueIsEmpty(Queue_t *q);
 
 uint32_t queueBufferAddr(Queue_t* q, uint32_t index);
-
-
-
-
-
-//Macros
-
-#define _QUEUE_BUFFER_ADDR(Q_PTR, INDEX)                             ((uint32_t)(Q_PTR)->buffer + ((INDEX) * (Q_PTR)->element_size))
 
 
 #endif

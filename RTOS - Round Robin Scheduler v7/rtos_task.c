@@ -176,7 +176,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
 
 
 
-void taskIdle(void)
+static void taskIdle(void)
 {
     while(1)
     {

@@ -1,4 +1,3 @@
-
 #include<stddef.h>
 
 
@@ -24,7 +23,6 @@ static bool queueAdd(Queue_t* q, const void* data)
 {
     if(!q || !data) return false;
 
-    //uint8_t* dest = q->buffer + (q->rear * q->element_size);
     uint8_t* dest = (uint8_t*) (_QUEUE_BUFFER_ADDR(q, q->rear));
     xmemcopy(dest, (void*)data, q->element_size);
     q->rear = (q->rear + 1) % q->max_length;
