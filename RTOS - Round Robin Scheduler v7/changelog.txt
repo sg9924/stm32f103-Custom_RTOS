@@ -12,3 +12,15 @@
 
 2: KERNEL
     - Improved rtosKernel_TaskStackInit API code
+
+3: STATIC QUEUES
+    - add Static Queue APIs
+        - queueCreateStatic
+        - queueAdd
+        - queueRemove
+        - queuePeek
+        - queueIsFull
+        - queueIsEmpty
+        - queueBufferAddr
+    - task preemption introduced
+    - ready queue add after blocked queue remove introduced
