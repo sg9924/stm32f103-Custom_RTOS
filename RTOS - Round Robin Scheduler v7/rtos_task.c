@@ -388,8 +388,8 @@ uint32_t taskNotify_Wait(uint32_t clear_on_entry_mask, uint32_t clear_on_exit_ma
     //control comes here when the task was unblocked after the provided ticks had passed
     else
     {
-        //reset noti state for future runs, noti value as 0
-        taskNotify_Set(current, 0, TASK_NOTIFY_STATE_NONE);
+        //reset noti state for future runs
+        current->task_noti.task_noti_state = TASK_NOTIFY_STATE_NONE;
     }
 
     //store the result to the pointer if it has been provided
