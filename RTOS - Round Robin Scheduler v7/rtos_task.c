@@ -147,10 +147,33 @@ void taskAdd_Idle()
 }
 
 
-
-void taskDelay(uint32_t tick)
+//Relative Task Delay
+//Does not include the task execution time in the delay
+void taskDelay(uint32_t delay_tick)
 {
-    taskBlock(NULL, tick);
+    taskBlock(NULL, delay_tick);
+}
+
+
+
+//Absolute Delay
+//Includes the task execution time in the delay
+void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick)
+{
+    //calculate absolute delay tick
+    uint32_t abs_delay_tick = *last_wake_tick + delay_tick;
+    //update last wake tick
+    *last_wake_tick = abs_delay_tick;
+
+    //absolute delay tick is higher than the current tick
+    //handles tick overflow
+    if((int32_t)(abs_delay_tick - Systick_get_tick()) > 0)
+        taskBlock(NULL, abs_delay_tick);
+    
+    //absolute delay tick is lagging
+    //don't block, we need to catchup to the current tick
+    //similar implementation to freeRTOS
+    return;
 }
 
 

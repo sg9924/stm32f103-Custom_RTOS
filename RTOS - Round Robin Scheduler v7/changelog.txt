@@ -13,8 +13,8 @@
 2: KERNEL
     - Improved rtosKernel_TaskStackInit API code
 
-3: STATIC QUEUES
-    - add Static Queue APIs
+3: STATIC MESSAGE QUEUES
+    - add Static Message Queue APIs
         - queueCreateStatic
         - queueAdd
         - queueRemove
@@ -24,3 +24,7 @@
         - queueBufferAddr
     - task preemption introduced
     - ready queue add after blocked queue remove introduced
+
+4: TASK
+    - Add taskDelayAbs API - similar to xTaskDelayUntil in freeRTOS
+    - this provides absolute delay while taskDelay provides relative delay

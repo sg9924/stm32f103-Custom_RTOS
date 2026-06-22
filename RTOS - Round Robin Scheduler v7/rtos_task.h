@@ -55,7 +55,8 @@ void taskAdd_Idle();
 void taskReset_Quota(tcb_t* task);
 void taskReset_QuotaAll();
 
-void taskDelay(uint32_t tick);
+void taskDelay(uint32_t delay_tick);
+void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick);
 void taskBlock(tcb_t* task, uint32_t timeout_tick);
 void taskUnblock(void);
 void taskYield(void);
