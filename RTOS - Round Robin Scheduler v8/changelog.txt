@@ -1,0 +1,11 @@
+1: INITIAL - TASK
+    - Add Multiple Task Notification Values (Arrays) for each Task
+    - New APIs:
+        - taskNotify_ResetAll
+        - taskNotify_SendIndex
+        - taskNotify_ReceiveIndex
+    - Modified APIs:
+        - taskNotify_Reset
+        - taskNotify_Set
+        - taskNotify_Send
+        - taskNotify_Receive
