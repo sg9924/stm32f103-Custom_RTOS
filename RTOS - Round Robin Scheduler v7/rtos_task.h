@@ -23,7 +23,7 @@ typedef void(*ptask_t)(void);       //task function pointer
 
 typedef struct
 {
-    uint32_t     task_noti_value;                    //notifcation value
+    uint32_t     task_noti_value;                    //notification value
     uint8_t      task_noti_state;                    //notification state
 }task_noti_t;
 
@@ -43,7 +43,7 @@ typedef struct tcb
     uint8_t      task_quota;                         //assigned task weight
     uint8_t      task_weight;                        //task wight for weighted round robin
     uint8_t      task_priority;                      //priority: 0 (highest) to 255 (lowest)
-    task_noti_t  task_noti[TASK_NOTI_MAX_SIZE];      //task notification array
+    task_noti_t  task_noti;                          //task notification structure
 }tcb_t;
 
 void __task_count_init(void);
@@ -70,9 +70,9 @@ tcb_t* getTask_Idle();
 tcb_t* getTask_List();
 uint8_t getTask_Count();
 
-void taskNotify_Reset(tcb_t* task, uint8_t index);
-void taskNotify_Set(tcb_t* task, uint32_t value, uint8_t state, uint8_t index);
-void taskNotify_ResetAll(tcb_t* task);
+void taskNotify_Reset(tcb_t* task);
+void taskNotify_Set(tcb_t* task, uint32_t value, uint8_t state);
+
 void taskNotify_Send(tcb_t* task, uint32_t value, uint8_t action);
 uint32_t taskNotify_Wait(uint32_t clear_on_entry_mask, uint32_t clear_on_exit_mask, uint32_t* out, uint32_t timeout_ticks);
 

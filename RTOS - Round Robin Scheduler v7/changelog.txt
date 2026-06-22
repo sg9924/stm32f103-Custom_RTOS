@@ -28,3 +28,7 @@
 4: TASK
     - Add taskDelayAbs API - similar to xTaskDelayUntil in freeRTOS
     - this provides absolute delay while taskDelay provides relative delay
+
+5: TASK NOTIFICATIONS
+    - cleanup
+    - small improvements

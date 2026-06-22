@@ -17,6 +17,9 @@ extern tcb_t* blocked_queue[1];
 static void taskAdd_Check(uint8_t task_count);
 static void taskIdle(void);
 
+static void taskBlock_Notify(tcb_t* task, uint32_t tick);
+static uint8_t taskUnblock_Notify(tcb_t* task);
+
 
 void __task_count_init(void)
 {
@@ -60,7 +63,6 @@ tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word)
         #endif
 
         ready_queue_add(&TCBS[task_count]);
-        taskNotify_ResetAll(&TCBS[task_count]);
 
         Serialprintln("Task %d added", INFO, task_count);
 
@@ -95,7 +97,6 @@ tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, 
         assert((stack_size_word == 0), "Invalid Stack Size during Task Add");
         #endif
 
-        taskNotify_ResetAll(&TCBS[task_count]);
         ready_queue_add(&TCBS[task_count]);
 
         Serialprintln("Task %d added", INFO, task_count);
@@ -297,11 +298,16 @@ static void taskBlock_Notify(tcb_t* task, uint32_t tick)
 //Helper
 static uint8_t taskUnblock_Notify(tcb_t* task)
 {
-    if(task->task_id != 0 && task->task_state == TASK_STATE_BLOCKED && task->task_noti[0].task_noti_state == TASK_NOTIFY_STATE_PENDING)
+    //Not a Idle Task + Task is blocked + Notification state = Pending
+    if(task->task_id != 0 && task->task_state == TASK_STATE_BLOCKED && task->task_noti.task_noti_state == TASK_NOTIFY_STATE_PENDING)
     {
+        //unblock the waiting task
         blocked_queue_remove(task, TASK_STATE_READY);
-        task->task_noti[0].task_noti_state = TASK_NOTIFY_STATE_RECEIVED;
+        //update the notification state as received
+        task->task_noti.task_noti_state = TASK_NOTIFY_STATE_RECEIVED;
+        //reset the block tick
         task->block_tick = 0;
+        //add back to the ready queue
         ready_queue_add(task);
         return 1;
     }
@@ -310,89 +316,80 @@ static uint8_t taskUnblock_Notify(tcb_t* task)
 }
 
 
-void taskNotify_Reset(tcb_t* task, uint8_t index)
+void taskNotify_Reset(tcb_t* task)
 {
-    task->task_noti[index].task_noti_state = TASK_NOTIFY_STATE_NONE;
-    task->task_noti[index].task_noti_value = 0;
+    task->task_noti.task_noti_state = TASK_NOTIFY_STATE_NONE;
+    task->task_noti.task_noti_value = 0;
 }
 
 
-void taskNotify_Set(tcb_t* task, uint32_t value, uint8_t state, uint8_t index)
+void taskNotify_Set(tcb_t* task, uint32_t value, uint8_t state)
 {
-    task->task_noti[index].task_noti_state = state;
-    task->task_noti[index].task_noti_value = value;
-}
-
-
-void taskNotify_ResetAll(tcb_t* task)
-{
-    for(uint8_t i=0; i<TASK_NOTI_MAX_SIZE; i++)
-        taskNotify_Reset(task, i);
+    task->task_noti.task_noti_state = state;
+    task->task_noti.task_noti_value = value;
 }
 
 
 
+//Task Notification Send
 void taskNotify_Send(tcb_t* task, uint32_t value, uint8_t action)
 {
     uint8_t was_blocked = 0;
     DISABLE_IRQ();
 
-    if(action == TASK_NOTIFY_ACTION_SET) task->task_noti[0].task_noti_value = value;
-    else if(action == TASK_NOTIFY_ACTION_OR) task->task_noti[0].task_noti_value |= value;
-    else if(action == TASK_NOTIFY_ACTION_INC) task->task_noti[0].task_noti_value += 1;
+    //perform the operations based on the notification actions
+    if(action == TASK_NOTIFY_ACTION_SET) task->task_noti.task_noti_value = value;
+    else if(action == TASK_NOTIFY_ACTION_OR) task->task_noti.task_noti_value |= value;
+    else if(action == TASK_NOTIFY_ACTION_INC) task->task_noti.task_noti_value += 1;
 
     //if the task was blocked waiting for the notification, it should be unblocked after receiving the notification
     if(taskUnblock_Notify(task))
         was_blocked = 1;
 
     ENABLE_IRQ();
-
-    //if the unblocked task has higher priority, yield now - priority scheduler
-    if(was_blocked)
-    {
-        #if SCHEDULER == SCHEDULER_ROUND_ROBIN || SCHEDULER == SCHEDULER_RR_WEIGHTED
-        ;
-        #elif SCHEDULER == SCHEDULER_PRIORITY
-        //pend systick to run the higher priority task
-        SYSTICK_CLEAR();
-        SYSTICK_EXCEPTION_PEND();
-        #endif
-    }
 }
 
 
-//to complete
+//Task Notification Receive
 uint32_t taskNotify_Wait(uint32_t clear_on_entry_mask, uint32_t clear_on_exit_mask, uint32_t* out, uint32_t timeout_ticks)
 {
     tcb_t* current = pcurrent;
-    uint32_t result;
+    uint32_t result = 0;
 
     //entry mask
-    if(clear_on_entry_mask) current->task_noti[0].task_noti_value &= ~clear_on_entry_mask;
+    if(clear_on_entry_mask) current->task_noti.task_noti_value &= ~clear_on_entry_mask;
 
     //if no notification is pending
-    if(current->task_noti[0].task_noti_state == TASK_NOTIFY_STATE_NONE)
+    if(current->task_noti.task_noti_state == TASK_NOTIFY_STATE_NONE)
     {
-        current->task_noti[0].task_noti_state = TASK_NOTIFY_STATE_PENDING;
+        //move to pending state
+        current->task_noti.task_noti_state = TASK_NOTIFY_STATE_PENDING;
+        //block the task waiting for the notification
         taskBlock_Notify(pcurrent, timeout_ticks);
     }
     
     //if notification has been received
-    if(current->task_noti[0].task_noti_state == TASK_NOTIFY_STATE_RECEIVED)
+    //control comes once the task has been unblocked by taskNotifySend
+    if(current->task_noti.task_noti_state == TASK_NOTIFY_STATE_RECEIVED)
     {
-        result = current->task_noti[0].task_noti_value;
-        current->task_noti[0].task_noti_state = TASK_NOTIFY_STATE_NONE;
+        //get the notification value
+        result = current->task_noti.task_noti_value;
+        //reset the noti state
+        current->task_noti.task_noti_state = TASK_NOTIFY_STATE_NONE;
 
         //exit mask
-        if(clear_on_exit_mask) current->task_noti[0].task_noti_value &= ~clear_on_exit_mask;
+        if(clear_on_exit_mask)
+        {
+            current->task_noti.task_noti_value &= ~clear_on_exit_mask;
+            result &= ~clear_on_exit_mask;
+        }
     }
     //timed out
+    //control comes here when the task was unblocked after the provided ticks had passed
     else
     {
-        //control comes here when the task was unblocked after the provided ticks had passed
-        //reset noti state for future runs
-        current->task_noti[0].task_noti_state = TASK_NOTIFY_STATE_NONE;
-        result = 0;
+        //reset noti state for future runs, noti value as 0
+        taskNotify_Set(current, 0, TASK_NOTIFY_STATE_NONE);
     }
 
     //store the result to the pointer if it has been provided
