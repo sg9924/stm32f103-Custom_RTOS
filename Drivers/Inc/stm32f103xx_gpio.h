@@ -107,10 +107,6 @@
                                         (x == GPIOF)?5:\
                                         (x == GPIOG)?6:0)
 
-//GPIO Config Lock Unlock
-#define GPIO_CONFIG_LOCK
-#define GPIO_CONFIG_UNLOCK
-
 /************************************************** GPIO Macros Definitions End *********************************************/
 /*--------------------------------------------------------------------------------------------------------------------------*/
 /********************************************* GPIO Structure Definitions Start *********************************************/
@@ -134,28 +130,9 @@ typedef struct
     uint16_t        GPIO_Pins_Used;
 }GPIO_Handle;
 
-/*to explore
-// GPIO Pins Used
-typedef struct
-{
-    uint8_t GPIOA_pins[16];
-    uint8_t GPIOB_pins[16];
-    uint8_t GPIOC_pins[16];
-    uint8_t GPIOD_pins[16];
-    uint8_t GPIOE_pins[16];
-    uint8_t GPIOF_pins[16];
-    uint8_t GPIOG_pins[16];
-}GPIO_Pins;
-*/
-
 /********************************************** GPIO Structure Definitions End **********************************************/
 /*--------------------------------------------------------------------------------------------------------------------------*/
 /*********************************************** GPIO API's Declarations Start **********************************************/
-
-/*to explore
-void GPIO_Used_init();
-void GPIO_Used_Update(uint32_t GPIOx, uint8_t* pins, size_t size);
-*/
 
 // GPIO Peripheral Clock Initialization
 void GPIO_PClk_init(GPIO_RegDef* pGPIOx, uint8_t setup_mode);                       /*<>*/

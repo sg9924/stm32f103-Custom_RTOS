@@ -181,6 +181,23 @@ typedef struct
 #define I2C1_DISABLE()           (I2C1->CR1 &= ~(1<<I2C_CR1_PE))
 #define I2C2_DISABLE()           (I2C2->CR1 &= ~(1<<I2C_CR1_PE))
 
+//I2C Operations for I2C1 Peripheral
+#define I2C1_START()                   (SET_BIT(I2C1->CR1, I2C_CR1_START))
+#define I2C1_STOP()                    (SET_BIT(I2C1->CR1, I2C_CR1_STOP))
+#define I2C1_CLEAR_ADDR()              ((void)I2C1->SR2)
+#define I2C1_CLEAR_ACK()               (RESET_BIT(I2C1->CR1, I2C_CR1_ACK))
+#define I2C1_WAIT_SB()                 while(!(I2C1->SR1 & (1<<I2C_SR1_SB)))
+#define I2C1_WAIT_TXE()                while(!(I2C1->SR1 & (1<<I2C_SR1_TXE)))
+#define I2C1_WAIT_RXNE()               while(!(I2C1->SR1 & (1<<I2C_SR1_RXNE)))
+#define I2C1_WAIT_ADDR()               while(!(I2C1->SR1 & (1<<I2C_SR1_ADDR)))
+#define I2C1_WAIT_BTF()                while(!(I2C1->SR1 & (1<<I2C_SR1_BTF)))
+
+#define I2C1_ADDR_PHASE_WRITE(addr)    (I2C1->DR = (addr << 1) & ~(1))
+#define I2C1_ADDR_PHASE_READ(addr)     (I2C1->DR = (addr << 1) | (1))
+
+#define I2C1_DR_READ()                 (I2C1->DR)
+#define I2C1_DR_WRITE(data)            (I2C1->DR = data)
+
 
 
 //Function Declarations

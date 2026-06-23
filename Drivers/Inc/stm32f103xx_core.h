@@ -64,6 +64,10 @@ typedef struct
 //Peripheral Definitions
 #define SCB          ((SCB_RegDef*) SCB_BASE_ADDR)
 
+//Global Interrupts
+//#define DISABLE_IRQ()            __asm("CPSID I")
+//#define ENABLE_IRQ()             __asm("CPSIE I")
+
 
 
 /*----------------------------------------------------Bit Field Definitions----------------------------------------------------*/

@@ -162,9 +162,6 @@ void I2C_Master_Send(I2C_Handle* pI2CHandle, uint8_t* ptxbuffer, uint32_t len, u
     pI2CHandle->ptxbuffer = ptxbuffer;
     pI2CHandle->tx_len = len;
 
-    //Enable ACK before Reception after PE is set
-    //I2C_ACK_Enable(pI2CHandle);
-
     //wait till bus is free
     while((pI2CHandle->pI2Cx->SR2 & 1<<I2C_SR2_BUSY));
 
@@ -176,10 +173,6 @@ void I2C_Master_Send(I2C_Handle* pI2CHandle, uint8_t* ptxbuffer, uint32_t len, u
 
     //Address Phase, send Slave address for write
     I2C_Address_Phase_Write(pI2CHandle, slave_addr);
-
-    //slave_addr = slave_addr<<1;  //first 7 bits are address
-    //slave_addr &= ~(1);          //last 8th bit is R/NW bit - 0 for write
-    //pI2CHandle->pI2Cx->DR = slave_addr;
 
     //wait till address phase is completed
     while(!(pI2CHandle->pI2Cx->SR1 & 1<<I2C_SR1_ADDR));
@@ -228,10 +221,6 @@ void I2C_Master_Receive(I2C_Handle* pI2CHandle, uint8_t* prxbuffer, uint32_t len
 
     //Address Phase, send Slave address for Read
     I2C_Address_Phase_Read(pI2CHandle, slave_addr);
-
-    //slave_addr = slave_addr<<1;  //first 7 bits are address
-    //slave_addr |= 1;             //last 8th bit is R/NW bit - 1 for read
-    //pI2CHandle->pI2Cx->DR = slave_addr;
 
     //wait till address phase is completed
     while(!(pI2CHandle->pI2Cx->SR1 & 1<<I2C_SR1_ADDR));
