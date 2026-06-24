@@ -19,6 +19,7 @@
 //Task Configurations
 #define NO_OF_TASKS                                   3
 #define TASK_NOTI_MAX_SIZE                            3                      //This doesn't include the default Idle Task
+#define TASK_DELAY_ABS_CATCHUP_MODE                   0                      //Catchup mode in taskDelayAbs
 
 
 //Stack Configurations
@@ -40,6 +41,7 @@
 //1 - enabled
 
 #define INFO_PRINT                                    1
+#define SYSTICK_LED_TOGGLE                            1
 
 
 #endif

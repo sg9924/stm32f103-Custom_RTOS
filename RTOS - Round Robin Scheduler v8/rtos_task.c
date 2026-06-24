@@ -2,7 +2,6 @@
 #include "rtos_task.h"
 #include "rtos_port.h"
 #include "rtos_config.h"
-#include "stm32f103xx_utilities.h"
 
 tcb_t TCBS[NO_OF_TASKS + 1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
@@ -150,6 +149,17 @@ void taskAdd_Idle()
 }
 
 
+//Idle Task
+static void taskIdle(void)
+{
+    while(1)
+    {
+        Serialprintln("[Tick: %x] No Tasks to run...", INFO, current_tick);
+    }
+}
+
+
+
 //Relative Task Delay
 //Does not include the task execution time in the delay
 void taskDelay(uint32_t delay_tick)
@@ -165,21 +175,32 @@ void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick)
 {
     //calculate absolute delay tick
     uint32_t abs_delay_tick = *last_wake_tick + delay_tick;
-    //update last wake tick
-    *last_wake_tick = abs_delay_tick;
 
     //absolute delay tick is higher than the current tick
     //handles tick overflow
     if((int32_t)(abs_delay_tick - Systick_get_tick()) > 0)
-        taskBlock(NULL, abs_delay_tick);
-    
+        taskBlockAbs(NULL, abs_delay_tick);
     //absolute delay tick is lagging
-    //don't block, we need to catchup to the current tick
-    //similar implementation to freeRTOS
+    else
+    {
+        //catchup mode
+        //don't block, we need to catchup to the current tick
+        //similar implementation in freeRTOS
+        #if TASK_DELAY_ABS_CATCHUP_MODE == 1
+        //update last wake tick to the absolute delay
+        *last_wake_tick = abs_delay_tick;
+        //no catchup
+        #elif TASK_DELAY_ABS_CATCHUP_MODE == 0
+        //update last wake tick to the current tick
+        *last_wake_tick = current_tick;
+        #endif
+    }
     return;
 }
 
 
+//Task Block Relative
+//task will be blocked for the duration provided relative to current tick
 void taskBlock(tcb_t* task, uint32_t timeout_tick)
 {
     if(task == NULL)
@@ -190,6 +211,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
         task->task_state = TASK_STATE_BLOCKED;
 
         //set block ticks
+        //relative
         task->block_tick = current_tick + timeout_tick;
 
         //insert into blocked queue
@@ -202,11 +224,26 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
 
 
 
-static void taskIdle(void)
+//Task Block Absolute
+//task will be blocked with duration assumed to be absolute
+void taskBlockAbs(tcb_t* task, uint32_t abs_timeout_tick)
 {
-    while(1)
+    if(task == NULL)
+        task = pcurrent;
+    
+    if(task->task_id != 0 && task->task_state != TASK_STATE_BLOCKED)
     {
-        Serialprintln("[Tick: %x] No Tasks to run...", INFO, Systick_get_tick());
+        task->task_state = TASK_STATE_BLOCKED;
+
+        //set block ticks
+        //relative
+        task->block_tick = abs_timeout_tick;
+
+        //insert into blocked queue
+        blocked_queue_add(task);
+
+        //Pend the PendSV Exception to handle context switch
+        INTCTRL = PENDSVSET;
     }
 }
 
@@ -215,14 +252,14 @@ static void taskIdle(void)
 void taskUnblock(void)
 {
     //for round robin, blocked_queue array always has one element only.
-    tcb_t* t = blocked_queue[0];
+    tcb_t* t     = blocked_queue[0];
     tcb_t* tprev = NULL;
 
     //go through the tasks in the queue
     while(t != NULL)
     {
         //check block tick
-        if(t->task_state == TASK_STATE_BLOCKED && t->block_tick == current_tick)
+        if(t->task_state == TASK_STATE_BLOCKED && (int32_t)(current_tick - t->block_tick) >= 0)
         {
             tcb_t* tnext = t->pnext;
 
@@ -234,10 +271,9 @@ void taskUnblock(void)
             else
                 tprev->pnext = tnext;
 
-            //set task as ready
-            t->task_state = TASK_STATE_READY;
+            //add to ready queue
             t->block_tick = 0;
-            t->pnext      = NULL;
+            ready_queue_add(t);
             
             t = tnext;
         }

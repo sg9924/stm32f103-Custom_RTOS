@@ -40,7 +40,6 @@ __attribute__((naked)) static void rtosScheduler_Launch(void);
 
 
 
-
 /****************************************************Ready Queue APIs Start*****************************************************/
 static void ready_queue_init()
 {
@@ -323,6 +322,7 @@ void rtosKernel_Init()
     __task_count_init();
     ready_queue_init();
     blocked_queue_init();
+    rtos_trace_init();
 }
 
 
@@ -385,7 +385,7 @@ void rtosKernel_Launch(uint32_t quanta)
 /*****************************************************Scheduler APIs Start*************************************************/
 void rtosScheduler_RoundRobin(void)
 {
-    uint8_t state = TASK_STATE_BLOCKED;
+    uint8_t state = pcurrent->task_state;
 
     //set task state for finished task (not for idle task)
     if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)
@@ -419,16 +419,16 @@ void rtosScheduler_RoundRobin(void)
         if(state == TASK_STATE_READY && pcurrent->task_id != 0)
         {
             pcurrent->task_state = TASK_STATE_RUNNING;
-            return;
         }
     }
 
-    //if all the tasks are blocked, run the idle task
-    if(state == TASK_STATE_BLOCKED)
+    //Ready queue is empty: all task are blocked including the current task
+    if(ready_queue[0] == NULL && (state == TASK_STATE_BLOCKED || pcurrent->task_id == 0))
     {
         pcurrent = getTask_Idle();
         pcurrent->task_state = TASK_STATE_RUNNING;
     }
+
     return;
 }
 
