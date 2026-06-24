@@ -30,3 +30,5 @@
 
 4: BUG FIX
     - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
+5: Bug Fixes - KERNEL
+        - Idle Task Selection Condition Logic in the Scheduler
