@@ -39,3 +39,9 @@
 
 7: BUG FIX
     - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
+
+8: Bug Fixes - KERNEL, TASK
+        - Idle Task Selection Condition Logic in Round Robin Schedulers
+        - Task Unblock:
+            - the block tick condition doesn't account for the tick overflow
+            - task is not added back to the ready queue after it has been unblocked

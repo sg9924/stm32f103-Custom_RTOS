@@ -124,6 +124,16 @@ void taskAdd_Idle()
 
 
 
+void taskIdle(void)
+{
+    while(1)
+    {
+        Serialprintln("[Tick: %x] No Tasks to run...", INFO, Systick_get_tick());
+    }
+}
+
+
+
 void taskDelay(uint32_t tick)
 {
     taskBlock(NULL, tick);
@@ -143,20 +153,11 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
         task->block_tick = current_tick + timeout_tick;
 
         //insert into blocked queue
+        //this task will be removed from the ready queue by the scheduler
         blocked_queue_add(task);
 
         //Pend the PendSV Exception to handle context switch
         INTCTRL = PENDSVSET;
-    }
-}
-
-
-
-void taskIdle(void)
-{
-    while(1)
-    {
-        Serialprintln("[Tick: %x] No Tasks to run...", INFO, Systick_get_tick());
     }
 }
 
@@ -172,7 +173,7 @@ void taskUnblock(void)
     while(t != NULL)
     {
         //check block tick
-        if(t->task_state == TASK_STATE_BLOCKED && t->block_tick == current_tick)
+        if(t->task_state == TASK_STATE_BLOCKED && (int32_t)(current_tick - t->block_tick) >= 0)
         {
             tcb_t* tnext = t->pnext;
 
@@ -184,10 +185,9 @@ void taskUnblock(void)
             else
                 tprev->pnext = tnext;
 
-            //set task as ready
-            t->task_state = TASK_STATE_READY;
+            //add to ready queue
             t->block_tick = 0;
-            t->pnext      = NULL;
+            ready_queue_add(t);
             
             t = tnext;
         }
