@@ -100,7 +100,7 @@ void taskUnblock(void)
     priority = TASK_MAX_PRIORITY;
     #endif
 
-    //iterate through each pirority from highest to lowest
+    //iterate through each priority from highest to lowest
     for(uint8_t i=0; i<priority; i++)
     {
         //get the starting task of the priority

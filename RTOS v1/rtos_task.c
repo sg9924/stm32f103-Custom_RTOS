@@ -144,11 +144,14 @@ void taskAdd_Idle()
 
 void taskDelay(uint32_t tick)
 {
-    //for all tasks other than idle task
-    if(pcurrent->task_id)
+    //task should NOT be blocked already and it should NOT be the idle task
+    if(pcurrent->task_id != 0 && pcurrent->task_state != TASK_STATE_BLOCKED)
     {
-        pcurrent->block_tick = current_tick + tick;
+        //set state as blocked
         pcurrent->task_state = TASK_STATE_BLOCKED;
+
+        //set block ticks
+        pcurrent->block_tick = current_tick + tick;
 
         //Pend the systick Exception to switch to next task
         SYSTICK_EXCEPTION_PEND();
@@ -166,7 +169,7 @@ void taskIdle(void)
 }
 
 
-//to be corrected for the latest priority scheduler
+
 void taskUnblock(void)
 {
     tcb_t* temp = pcurrent;
