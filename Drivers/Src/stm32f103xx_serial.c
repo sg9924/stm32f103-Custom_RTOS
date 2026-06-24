@@ -61,6 +61,41 @@ void _print_int(int32_t value, char* buffer, uint32_t* buff_ind)
     char_count += (*buff_ind);
 }
 
+
+void _print_uint(uint32_t value, char* buffer, uint32_t* buff_ind)
+{
+    int8_t i=0;   //!!!don't change datatype to uint!!!
+    char buff[32];
+
+    if(value == 0)
+    {
+        buffer[*buff_ind] = '0';
+        ++(*buff_ind);
+    }
+
+    // extract digits of integer in reverse
+    while(value>0)
+    {
+        buff[i++] = '0' + (value%10);
+        value/=10;
+    }
+    i--;
+
+    // store the digits in correct order
+    while(i>=0)
+    {
+        buffer[(*buff_ind)++] = buff[i--];
+        if (*buff_ind == BUFF_SIZE)
+        {
+            _print_buffer(buffer, buff_ind);
+            char_count += (*buff_ind);
+            _reset_buffer(buff_ind);
+        }
+    }
+    char_count += (*buff_ind);
+}
+
+
 void _print_float(double value, char* buffer, uint32_t* buff_ind, uint8_t precision)
 {
     int32_t integral;

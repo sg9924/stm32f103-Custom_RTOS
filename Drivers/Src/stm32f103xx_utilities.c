@@ -106,6 +106,11 @@ char* string_format(char* str, ...)
                 int value = va_arg(args, int);
                 _print_int(value, str_buffer, &bi);
             }
+            else if (*str == 'u') // Case: '%u' prints an unsigned integer
+            {
+                int value = va_arg(args, unsigned int);
+                _print_uint(value, str_buffer, &bi);
+            }
             else if(*str == 'x')
             {
                 unsigned int value = va_arg(args, unsigned int);
