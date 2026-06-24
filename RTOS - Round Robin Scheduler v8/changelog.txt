@@ -13,8 +13,7 @@
     - Add config option to use or not use catchup in taskDelayAbs
 
 3: Bug Fixes - KERNEL, TASK
-        - Idle Task Selection Condition Logic
-        - Task Block: Task is not removed from the ready queue when it has been blocked
+        - Idle Task Selection Condition Logic in Round Robin Schedulers
         - Task Unblock:
             - the block tick condition doesn't account for the tick overflow
             - task is not added back to the ready queue after it has been unblocked

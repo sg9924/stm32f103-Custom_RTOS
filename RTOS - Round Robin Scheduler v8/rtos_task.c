@@ -215,6 +215,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
         task->block_tick = current_tick + timeout_tick;
 
         //insert into blocked queue
+        //this task will be removed from the ready queue by the scheduler
         blocked_queue_add(task);
 
         //Pend the PendSV Exception to handle context switch
@@ -240,6 +241,7 @@ void taskBlockAbs(tcb_t* task, uint32_t abs_timeout_tick)
         task->block_tick = abs_timeout_tick;
 
         //insert into blocked queue
+        //this task will be removed from the ready queue by the scheduler
         blocked_queue_add(task);
 
         //Pend the PendSV Exception to handle context switch
