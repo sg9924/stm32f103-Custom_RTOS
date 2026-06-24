@@ -12,6 +12,7 @@
 
 3: BUG FIX
     - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
+
 4: KERNEL, TASK
     - Added support for individual unique stack size for each task
     - common stack size is also present
@@ -23,3 +24,7 @@
           just yet. Later the first heap of Arena Allocator type will be added and this code will be modified to use that
         - rtosKernel_TaskStackInit has been modified to handle the Stack Init for both stack configuration options
         - minor modification in assert API
+
+5: Bug Fixes - KERNEL, TASK
+        - Idle Task Selection Condition Logic in the Scheduler
+        - Task Unblock: the block tick condition doesn't account for the tick overflow
