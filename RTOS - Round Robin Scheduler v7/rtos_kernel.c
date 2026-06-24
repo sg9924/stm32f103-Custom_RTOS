@@ -385,8 +385,6 @@ void rtosKernel_Launch(uint32_t quanta)
 /*****************************************************Scheduler APIs Start*************************************************/
 void rtosScheduler_RoundRobin(void)
 {
-    uint8_t state = TASK_STATE_BLOCKED;
-
     //set task state for finished task (not for idle task)
     if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)
     {
@@ -405,26 +403,22 @@ void rtosScheduler_RoundRobin(void)
         //get the next task
         tcb_t* t = ready_queue[0];
 
-        //dequeue
+        //dequeue the task which is to be run next
         ready_queue[0] = t->pnext;
         t->pnext = NULL;
 
         //set the new task as current
         pcurrent = t;
 
-        //get its state
-        state = pcurrent->task_state;
-
         //if the new task is ready and it is not a idle task
-        if(state == TASK_STATE_READY && pcurrent->task_id != 0)
+        if(pcurrent->task_state == TASK_STATE_READY && pcurrent->task_id != 0)
         {
             pcurrent->task_state = TASK_STATE_RUNNING;
-            return;
         }
     }
 
-    //if all the tasks are blocked, run the idle task
-    if(state == TASK_STATE_BLOCKED)
+    //Ready queue is empty: all tasks are blocked including the current task or idle task is only running
+    if(ready_queue[0] == NULL && (pcurrent->task_state == TASK_STATE_BLOCKED || pcurrent->task_id == 0))
     {
         pcurrent = getTask_Idle();
         pcurrent->task_state = TASK_STATE_RUNNING;
@@ -436,27 +430,21 @@ void rtosScheduler_RoundRobin(void)
 
 void rtosScheduler_RoundRobinWeighted(void)
 {
-    uint8_t state = TASK_STATE_BLOCKED;
-
-
     //get the next task
     if(ready_queue[0] != NULL)
     {   
-        //get state of current task
-        state = pcurrent->task_state;
-
         //not an idle task
         if(pcurrent->task_id != 0)
         {
             //if the task is running and quota is not 0
-            if(state == TASK_STATE_RUNNING && pcurrent->task_quota >= 1)
+            if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_quota >= 1)
             {
                 //decrease quota
                 pcurrent->task_quota--;
                 return;
             }
             //if the task's quota is 0, then go to next task
-            else if(pcurrent->task_quota == 0)
+            else if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_quota == 0)
             {
                 //reset quota of current task
                 taskReset_Quota(pcurrent);
@@ -468,7 +456,7 @@ void rtosScheduler_RoundRobinWeighted(void)
 
                 //dequeue
                 ready_queue[0] = t->pnext;
-                t->pnext = NULL;
+                t->pnext       = NULL;
 
                 //set the new task as current
                 pcurrent = t;
@@ -483,7 +471,7 @@ void rtosScheduler_RoundRobinWeighted(void)
                 }
             }
             //if quota > 0, just return
-            else if(pcurrent->task_quota > 0) return;
+            else if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_quota > 0) return;
         }
         //idle task
         else if (pcurrent->task_id == 0)
@@ -493,10 +481,10 @@ void rtosScheduler_RoundRobinWeighted(void)
         }
     }
 
-    //if all the tasks are blocked, run the idle task
-    if(state == TASK_STATE_BLOCKED)
+    //Ready queue is empty: all tasks are blocked including the current task or idle task is only running
+    if(ready_queue[0] == NULL && (pcurrent->task_state == TASK_STATE_BLOCKED || pcurrent->task_id == 0))
     {
-        pcurrent = getTask_Idle();
+        pcurrent             = getTask_Idle();
         pcurrent->task_state = TASK_STATE_RUNNING;
     }
     return;

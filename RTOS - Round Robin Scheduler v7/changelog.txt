@@ -32,3 +32,9 @@
 5: TASK NOTIFICATIONS
     - cleanup
     - small improvements
+
+6: Bug Fixes - KERNEL, TASK
+        - Idle Task Selection Condition Logic in Round Robin Schedulers
+        - Task Unblock:
+            - the block tick condition doesn't account for the tick overflow
+            - task is not added back to the ready queue after it has been unblocked
