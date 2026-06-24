@@ -124,7 +124,7 @@ void taskUnblock(void)
         while(t != NULL)
         {
             //check block tick
-            if(t->task_state == TASK_STATE_BLOCKED && t->block_tick == current_tick)
+            if(t->task_state == TASK_STATE_BLOCKED && (int32_t)(current_tick - t->block_tick) >= 0)
             {
                 tcb_t* tnext = t->pnext;
 
@@ -138,7 +138,6 @@ void taskUnblock(void)
 
                 //add to ready queue
                 t->block_tick = 0;
-                t->pnext      = NULL;
                 ready_queue_add(t);
 
                 //compare the priorities of the unblocked task and current task

@@ -361,7 +361,6 @@ void rtosKernel_Launch(uint32_t quanta)
 /*****************************************************Scheduler APIs Start*************************************************/
 static void rtosScheduler_Priority()
 {
-    int8_t state = TASK_STATE_BLOCKED;
     uint8_t loop_priority = MAX_NO_OF_PRIORITY-1;
 
     //current task - still running and its not a idle task
@@ -402,11 +401,8 @@ static void rtosScheduler_Priority()
                 //set the new task as current
                 pcurrent = t;
 
-                //get its state
-                state = pcurrent->task_state;
-
                 //if the new task is ready and it is not a idle task
-                if(state == TASK_STATE_READY && pcurrent->task_id != 0)
+                if(pcurrent->task_state == TASK_STATE_READY && pcurrent->task_id != 0)
                 {
                     pcurrent->task_state = TASK_STATE_RUNNING;
                     return;
@@ -416,9 +412,9 @@ static void rtosScheduler_Priority()
     }
 
     //loop through ready queue completed
-    //no task found to preempt & current task is blocked
+    //Ready queue is empty: all tasks are blocked including the current task or idle task is only running
     //idle task should be selected for preemption
-    if(state == TASK_STATE_BLOCKED)
+    if(ready_queue[0] == NULL && (pcurrent->task_state == TASK_STATE_BLOCKED || pcurrent->task_id == 0))
     {
         pcurrent = getTask_Idle();
         pcurrent->task_state = TASK_STATE_RUNNING;
