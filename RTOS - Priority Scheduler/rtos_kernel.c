@@ -225,6 +225,7 @@ void rtosKernel_Launch(uint32_t quanta)
 
 static void rtosScheduler_Priority()
 {
+    bool new_task_selected = false;
     uint8_t loop_priority = TASK_MAX_PRIORITY-1;
 
     //current task - still running and its not a idle task
@@ -232,8 +233,6 @@ static void rtosScheduler_Priority()
     {
         //set loop limit for pirority
         loop_priority = pcurrent->task_priority;
-        //set it as ready
-        pcurrent->task_state = TASK_STATE_READY;
         //add to ready queue
         add_to_ready_queue(pcurrent);
     }
@@ -255,8 +254,7 @@ static void rtosScheduler_Priority()
 
             //check priority
             //high or equal priority - task preemption should occur
-            //current task is blocked - task preemption should occur
-            if(t->task_priority <= pcurrent->task_priority || pcurrent->task_state == TASK_STATE_BLOCKED)
+            if(t->task_priority <= pcurrent->task_priority)
             {
                 //dequeue the task
                 ready_queue[i] = t->pnext;
@@ -269,6 +267,7 @@ static void rtosScheduler_Priority()
                 if(pcurrent->task_state == TASK_STATE_READY && pcurrent->task_id != 0)
                 {
                     pcurrent->task_state = TASK_STATE_RUNNING;
+                    new_task_selected    = true;
                     return;
                 }
             }
@@ -276,11 +275,11 @@ static void rtosScheduler_Priority()
     }
 
     //loop through ready queue completed
-    //Ready queue is empty: all tasks are blocked including the current task or idle task is only running
+    //no new task selected
     //idle task should be selected for preemption
-    if(ready_queue[0] == NULL && (pcurrent->task_state == TASK_STATE_BLOCKED || pcurrent->task_id == 0))
+    if(new_task_selected == false || pcurrent->task_id == 0)
     {
-        pcurrent = getTask_Idle();
+        pcurrent             = getTask_Idle();
         pcurrent->task_state = TASK_STATE_RUNNING;
     }
     return;
