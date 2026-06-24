@@ -1,0 +1,8 @@
+1. INITIAL:
+    - Configurations Cleanup
+    - Additional Configurations added
+    - Idle Task Definition Cleanup
+    - task Unblock Bug Fix:
+        - Add Task back to the ready queue after unblocking
+        - account for overflow in block tick check condition
+    - Schedulers Improvements/bug fixes
