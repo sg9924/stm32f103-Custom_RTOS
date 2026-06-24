@@ -8,7 +8,7 @@
 #define NO_OF_TASKS                                   3
 #define STACKSIZE                                     200
 #define TASK_DESC_LENGTH                              100
-#define MAX_NO_OF_PRIORITY                            4
+#define TASK_MAX_NO_OF_PRIORITY                            4
 #define RTOS_SCHEDULER_START_DELAY                    3000
 #define SCHEDULER                                     SCHEDULER_PRIORITY
 

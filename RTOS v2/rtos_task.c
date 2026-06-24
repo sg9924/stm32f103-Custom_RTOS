@@ -5,8 +5,8 @@
 
 //external variables
 extern uint32_t current_tick;
-extern tcb_t* ready_queue[MAX_NO_OF_PRIORITY];
-extern tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];
+extern tcb_t* ready_queue[TASK_MAX_NO_OF_PRIORITY];
+extern tcb_t* blocked_queue[TASK_MAX_NO_OF_PRIORITY];
 
 tcb_t TCBS[NO_OF_TASKS+1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
@@ -137,7 +137,7 @@ void taskAdd_Idle()
     TCBS[0].task_quota  = 0;
     #endif
     #if SCHEDULER == SCHEDULER_PRIORITY
-    TCBS[0].task_priority = MAX_NO_OF_PRIORITY-1;  //lowest priority
+    TCBS[0].task_priority = TASK_MAX_NO_OF_PRIORITY-1;  //lowest priority
     #endif
     TCBS[0].block_tick  = 0;
 }
