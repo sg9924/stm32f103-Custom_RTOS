@@ -369,6 +369,7 @@ void rtosKernel_Launch(uint32_t quanta)
     pcurrent->task_state = TASK_STATE_RUNNING;
 
     #if SCHEDULER == SCHEDULER_ROUND_ROBIN
+    //dequeue the current task to be run
     ready_queue[0] = pcurrent->pnext;
     #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
     taskReset_QuotaAll();
