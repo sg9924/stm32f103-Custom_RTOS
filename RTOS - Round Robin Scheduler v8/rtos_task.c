@@ -173,13 +173,18 @@ void taskDelay(uint32_t delay_tick)
 //Includes the task execution time in the delay
 void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick)
 {
+    DISABLE_IRQ();
+    
     //calculate absolute delay tick
     uint32_t abs_delay_tick = *last_wake_tick + delay_tick;
 
     //absolute delay tick is higher than the current tick
     //handles tick overflow
     if((int32_t)(abs_delay_tick - Systick_get_tick()) > 0)
+    {
         taskBlockAbs(NULL, abs_delay_tick);
+        *last_wake_tick = abs_delay_tick;
+    }
     //absolute delay tick is lagging
     else
     {
@@ -195,6 +200,8 @@ void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick)
         *last_wake_tick = current_tick;
         #endif
     }
+
+    ENABLE_IRQ();
     return;
 }
 
@@ -237,7 +244,6 @@ void taskBlockAbs(tcb_t* task, uint32_t abs_timeout_tick)
         task->task_state = TASK_STATE_BLOCKED;
 
         //set block ticks
-        //relative
         task->block_tick = abs_timeout_tick;
 
         //insert into blocked queue

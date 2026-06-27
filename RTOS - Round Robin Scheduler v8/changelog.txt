@@ -17,3 +17,5 @@
         - Task Unblock:
             - the block tick condition doesn't account for the tick overflow
             - task is not added back to the ready queue after it has been unblocked
+4: TASK:
+    - Add Critical section enter and exit in taskDelayAbs to prevent interrupts while calculating and checking the conditions for blocking
