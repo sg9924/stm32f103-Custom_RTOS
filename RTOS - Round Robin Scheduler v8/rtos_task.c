@@ -1,8 +1,5 @@
-#include "rtos_kernel.h"
 #include "rtos_task.h"
-#include "rtos_port.h"
-#include "rtos_config.h"
-
+#include "rtos_kernel.h"
 tcb_t TCBS[NO_OF_TASKS + 1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
 
@@ -316,10 +313,22 @@ void taskUnblock(void)
 
 
 
-void taskYield(void)
+//Task Yield
+void taskYield(bool higherPriorityTaskWoken)
 {
-    //Pend the PendSV Exception to handle context switch
-    INTCTRL = PENDSVSET;
+    if(higherPriorityTaskWoken)
+        //Pend the PendSV Exception to handle context switch
+        INTCTRL = PENDSVSET;
+}
+
+
+//Task Yield
+//To be used only in ISR
+void taskYieldFromISR(bool higherPriorityTaskWoken)
+{
+    if(higherPriorityTaskWoken)
+        //Pend the PendSV Exception to handle context switch
+        INTCTRL = PENDSVSET;
 }
 
 

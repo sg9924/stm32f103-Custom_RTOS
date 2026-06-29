@@ -153,7 +153,7 @@ bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick)
             //if priority of unblocked task is "higher" (lesser value) than that of current task
             //preemption should happen - yield
             if(task->task_priority < pcurrent->task_priority)
-                taskYield();
+                taskYield(true);
             ENABLE_IRQ();
         }
         else ENABLE_IRQ();
@@ -215,7 +215,7 @@ bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick)
             //if priority of unblocked task is "higher" than that of current task
             //preemption should happen
             if(task->task_priority < pcurrent->task_priority)
-                taskYield();
+                taskYield(true);
             ENABLE_IRQ();
         }
         else ENABLE_IRQ();
@@ -260,7 +260,7 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
             //if priority of unblocked task is "higher" than that of current task
             //preemption should happen
             if(task->task_priority < pcurrent->task_priority)
-                taskYield();
+                taskYield(true);
             ENABLE_IRQ();
         }
         else ENABLE_IRQ();
@@ -319,7 +319,7 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
             //if priority of unblocked task is "higher" than that of current task
             //preemption should happen
             if(task->task_priority < pcurrent->task_priority)
-                taskYield();
+                taskYield(true);
         }
         else ENABLE_IRQ();
         return true;

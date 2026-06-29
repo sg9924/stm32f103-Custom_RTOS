@@ -3,6 +3,7 @@
 #include<stdint.h>
 
 #include "rtos_config.h"
+#include "rtos_port.h"
 
 
 #define TASK_STATE_READY            ('A')
@@ -60,7 +61,8 @@ void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick);
 void taskBlock(tcb_t* task, uint32_t timeout_tick);
 void taskBlockAbs(tcb_t* task, uint32_t abs_timeout_tick);
 void taskUnblock(void);
-void taskYield(void);
+void taskYield(bool higherPriorityTaskWoken);
+void taskYieldFromISR(bool higherPriorityTaskWoken);
 
 
 

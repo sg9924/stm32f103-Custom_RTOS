@@ -1,6 +1,7 @@
 #include "rtos_config.h"
 #include "rtos_kernel.h"
 #include "rtos_task.h"
+#include "rtos_port.h"
 #include "Semaphore.h"
 
 
@@ -40,7 +41,7 @@ void Semaphore_CooperativeTake(int8_t *semaphore)
     while(*semaphore<=0)
     {
         DISABLE_IRQ();
-        taskYield();
+        taskYield(true);
         ENABLE_IRQ();
     }
 
