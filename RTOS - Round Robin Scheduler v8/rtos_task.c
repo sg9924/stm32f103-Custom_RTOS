@@ -171,26 +171,45 @@ void taskDelay(uint32_t delay_tick)
 
 //Absolute Delay
 //Includes the task execution time in the delay
+//accounts for overflow
 void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick)
 {
     DISABLE_IRQ();
     
     //calculate absolute delay tick
     uint32_t abs_delay_tick = *last_wake_tick + delay_tick;
+    bool     block          = false;
 
-    //absolute delay tick is higher than the current tick
-    //handles tick overflow
-    if((int32_t)(abs_delay_tick - Systick_get_tick()) > 0)
+    //systick overflow
+    if(current_tick < *last_wake_tick)
     {
-        taskBlockAbs(NULL, abs_delay_tick);
-        *last_wake_tick = abs_delay_tick;
+        //abs delay tick overflow wrt last wake tick
+        //abs delay tick should be greater than current tick
+        if((abs_delay_tick < *last_wake_tick) && abs_delay_tick > current_tick)
+            block = true;
     }
-    //absolute delay tick is lagging
+    //no systick overflow
+    else
+    {
+        //case 1: abs delay tick overflow wrt last wake tick
+        //case 2: no overflow in abs delay tick, it should be greater than the current tick
+        if ((abs_delay_tick < *last_wake_tick) || (abs_delay_tick > current_tick))
+            block = true;
+
+        //above conditions not satisfied -> missed deadline (RMS)
+        //current tick is now greater than abs delay tick
+    }
+
+    if(block == true)
+    {
+        *last_wake_tick = abs_delay_tick;
+        taskBlockAbs(NULL, abs_delay_tick);
+    }
     else
     {
         //catchup mode
         //don't block, we need to catchup to the current tick
-        //similar implementation in freeRTOS
+        //similar implementation as in freeRTOS
         #if TASK_DELAY_ABS_CATCHUP_MODE == 1
         //update last wake tick to the absolute delay
         *last_wake_tick = abs_delay_tick;
