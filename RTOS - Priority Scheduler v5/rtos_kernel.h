@@ -15,6 +15,41 @@
 #define PENDSVSET        (1UL << 28)
 
 
+
+//Critical Section APIs
+//ISR
+//Enter Critical Section inside ISR
+static inline uint32_t enterCriticalISR(void)
+{
+    uint32_t temp;
+
+    //Read PRIMASk value into temp
+    //then disable the interrupts
+    __asm volatile(
+        "MRS %0, PRIMASK\n"
+        "CPSID I\n"
+        : "=r" (temp)
+        :
+        : "memory"
+    );
+
+    return temp;
+}
+
+
+//Exit Critical Section inside ISR
+static inline void exitCriticalISR(uint32_t prev_mask)
+{
+    //restore the PRIMASK state we had before
+    __asm volatile (
+        "MSR PRIMASK, %0\n"
+        : 
+        : "r" (prev_mask) 
+        : "memory"
+    );
+}
+
+
 void rtosKernel_Init();
 void rtosKernel_Launch(uint32_t quanta);
 

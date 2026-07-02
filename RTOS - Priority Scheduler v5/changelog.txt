@@ -28,3 +28,6 @@
 5: Bug Fixes - KERNEL, TASK
         - Idle Task Selection Condition Logic in the Scheduler
         - Task Unblock: the block tick condition doesn't account for the tick overflow
+
+6: KERNEL
+    - Add enter and exit Critical section APIs (ISR specific)
