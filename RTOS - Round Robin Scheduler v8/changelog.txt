@@ -17,8 +17,15 @@
         - Task Unblock:
             - the block tick condition doesn't account for the tick overflow
             - task is not added back to the ready queue after it has been unblocked
-4: TASK:
+4: TASK
     - Add Critical section enter and exit in taskDelayAbs to prevent interrupts while calculating and checking the conditions for blocking
 
-5: TASK:
+5: TASK
     - taskDelayAbs: modify to account for cases of counter overflow in tick
+
+6: TASK
+    - modify taskYield for input parameter higherPriorityTaskWoken
+    - new API - taskYieldFromISR
+
+7: KERNEL
+    - Add enter and exit Critical section APIs (ISR specific)

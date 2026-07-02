@@ -16,14 +16,55 @@
 #define WORD_ALIGN_8BYTE(value)         (((value) + 1) & ~1)
 
 
+
+//Critical Section APIs
+//ISR
+//Enter Critical Section inside ISR
+inline uint32_t enterCriticalISR(void)
+{
+    uint32_t temp;
+
+    //Read PRIMASk value into temp
+    //then disable the interrupts
+    __asm volatile(
+        "MRS %0, PRIMASK\n"
+        "CPSID I\n"
+        : "=r" (temp)
+        :
+        : "memory"
+    );
+
+    return temp;
+}
+
+
+//Exit Critical Section inside ISR
+inline uint32_t exitCriticalISR(uint32_t prev_mask)
+{
+    //restore the PRIMASK state we had before
+    __asm volatile (
+        "MSR PRIMASK, %0\n"
+        : 
+        : "r" (prev_mask) 
+        : "memory"
+    );
+}
+
+
+//Kernel
 void rtosKernel_Init();
 void rtosKernel_Launch(uint32_t quanta);
 
+//Assert
 uint8_t assert(uint8_t condition, char* assert_msg);
+
+//Stack Allocate
 #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
 uint32_t* Stack_Allocate(uint32_t size_in_words);
 #endif
 
+
+//Queue Operations
 void ready_queue_add(tcb_t* task);
 uint8_t ready_queue_remove(tcb_t* task, uint8_t state);
 
