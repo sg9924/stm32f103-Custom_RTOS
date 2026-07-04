@@ -12,7 +12,6 @@ typedef struct task_node_t
 {
     tcb_t* task;
     struct task_node_t *next;
-    uint8_t priority;
 }task_node_t;
 
 typedef struct

@@ -14,7 +14,7 @@ extern tcb_t *pcurrent;            //current pointer to a TCB
 static bool queueAdd(Queue_t* q, const void* data);
 static bool queueRemove(Queue_t* q, void* out);
 
-static void waitlist_Insert(twaitlist_t *wl, tcb_t* t, uint8_t priority, task_node_t* tn);
+static void waitlist_Insert(twaitlist_t *wl, tcb_t* t, task_node_t* tn);
 static tcb_t* waitlist_Pop(twaitlist_t *wl);
 
 
@@ -53,15 +53,14 @@ static bool queueRemove(Queue_t* q, void* out)
 
 
 //Add a task to wait list
-static void waitlist_Insert(twaitlist_t *wl, tcb_t* t, uint8_t priority, task_node_t* tn)
+static void waitlist_Insert(twaitlist_t *wl, tcb_t* t, task_node_t* tn)
 {
     //task node
     tn->task     = t;
-    tn->priority = priority;
     tn->next     = NULL;
 
-    //if wait list is empty or priority of task to add > priority of task at head of list
-    if(!wl->head || priority > wl->head->priority)
+    //if wait list is empty
+    if(!wl->head)
     {
         tn->next = wl->head;
         wl->head = tn;
@@ -71,8 +70,8 @@ static void waitlist_Insert(twaitlist_t *wl, tcb_t* t, uint8_t priority, task_no
     //Adding to end of the list
     //temp pointer for traversal
     task_node_t* temp = wl->head;
-    //continue traversing as long as next != NULL & priority of next > priority
-    while(temp->next && temp->next->priority >= priority) temp = temp->next;
+    //continue traversing as long as next != NULL
+    while(temp->next) temp = temp->next;
     //insert the task node at appropriate location
     tn->next = temp->next;
     temp->next = tn;
@@ -81,7 +80,7 @@ static void waitlist_Insert(twaitlist_t *wl, tcb_t* t, uint8_t priority, task_no
 }
 
 
-//Pop the highest priority Task from the wait list
+//Pop a Task from the wait list
 static tcb_t* waitlist_Pop(twaitlist_t *wl)
 {
     //checks
@@ -106,7 +105,7 @@ Queue_t* queueCreateStatic(size_t element_size, size_t length, Queue_t* q, uint8
     if(!q || length == 0 || element_size == 0 || buffer == NULL) return NULL;
 
     q->buffer          = buffer;
-    q->front           = 0;             //front index - points to location where data needs to be written to
+    q->front           = 0;             //front index - points to location where data needs to be read from
     q->rear            = 0;             //rear index - points to location where data needs to be written to
     q->element_size    = element_size;
     q->cur_length      = 0;
@@ -149,11 +148,6 @@ bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick)
             blocked_queue_remove(task, TASK_STATE_READY);
             ready_queue_add(task);
 
-            //check the unblocked reader task's priority
-            //if priority of unblocked task is "higher" (lesser value) than that of current task
-            //preemption should happen - yield
-            if(task->task_priority < pcurrent->task_priority)
-                taskYield(true);
             ENABLE_IRQ();
         }
         else ENABLE_IRQ();
@@ -177,7 +171,7 @@ bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick)
     task_node_t t;
 
     //add the task to the writers queue and block it
-    waitlist_Insert(&q->writers, pcurrent, pcurrent->task_priority, &t);
+    waitlist_Insert(&q->writers, pcurrent, &t);
     q->writer_count++;
 
     ENABLE_IRQ();
@@ -211,11 +205,6 @@ bool queueSend(Queue_t* q, const void* item, uint16_t wait_tick)
             blocked_queue_remove(task, TASK_STATE_READY);
             ready_queue_add(task);
 
-            //check the unblocked reader task's priority
-            //if priority of unblocked task is "higher" than that of current task
-            //preemption should happen
-            if(task->task_priority < pcurrent->task_priority)
-                taskYield(true);
             ENABLE_IRQ();
         }
         else ENABLE_IRQ();
@@ -256,11 +245,6 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
             blocked_queue_remove(task, TASK_STATE_READY);
             ready_queue_add(task);
 
-            //check the unblocked writer task's priority
-            //if priority of unblocked task is "higher" than that of current task
-            //preemption should happen
-            if(task->task_priority < pcurrent->task_priority)
-                taskYield(true);
             ENABLE_IRQ();
         }
         else ENABLE_IRQ();
@@ -280,7 +264,7 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
     //add the writer task to the wait list
     //wait task_node_t is required, static allocation for now
     task_node_t t;
-    waitlist_Insert(&q->readers, pcurrent, pcurrent->task_priority, &t);
+    waitlist_Insert(&q->readers, pcurrent, &t);
     q->reader_count++;
 
     ENABLE_IRQ();
@@ -314,12 +298,6 @@ bool queueReceive(Queue_t* q, const void* item, uint16_t wait_tick)
             ready_queue_add(task);
 
             ENABLE_IRQ();
-            
-            //check the unblocked writer task's priority
-            //if priority of unblocked task is "higher" than that of current task
-            //preemption should happen
-            if(task->task_priority < pcurrent->task_priority)
-                taskYield(true);
         }
         else ENABLE_IRQ();
         return true;
