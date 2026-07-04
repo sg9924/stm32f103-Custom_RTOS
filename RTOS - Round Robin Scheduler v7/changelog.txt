@@ -38,3 +38,6 @@
         - Task Unblock:
             - the block tick condition doesn't account for the tick overflow
             - task is not added back to the ready queue after it has been unblocked
+
+7: QUEUE
+    - correct Queue metadata structure definition and APIs to remove priority field
