@@ -20,7 +20,7 @@
 //Critical Section APIs
 //ISR
 //Enter Critical Section inside ISR
-inline uint32_t enterCriticalISR(void)
+static inline uint32_t enterCriticalISR(void)
 {
     uint32_t temp;
 
@@ -39,7 +39,7 @@ inline uint32_t enterCriticalISR(void)
 
 
 //Exit Critical Section inside ISR
-inline uint32_t exitCriticalISR(uint32_t prev_mask)
+static inline void exitCriticalISR(uint32_t prev_mask)
 {
     //restore the PRIMASK state we had before
     __asm volatile (

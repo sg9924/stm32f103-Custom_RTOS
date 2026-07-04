@@ -30,10 +30,9 @@ void task1(void)
     while(1)
     {
         last_wake = Systick_get_tick();
-
-        //Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[0]->task_id, tcb_list[0]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[0]->task_id, tcb_list[0]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN4);
-        taskDelayAbs(&last_wake, MS_TO_TICK(200));
+        taskDelayAbs(&last_wake, MS_TO_TICK(500));
     }
 }
 
@@ -44,10 +43,9 @@ void task2(void)
     while(1)
     {
         last_wake = Systick_get_tick();
-
-        //Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN5);
-        taskDelayAbs(&last_wake, MS_TO_TICK(200));
+        taskDelayAbs(&last_wake, MS_TO_TICK(400));
     }
 }
 
@@ -59,10 +57,9 @@ void task3(void)
     while(1)
     {
         last_wake = Systick_get_tick();
-
-        //Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN6);
-        taskDelayAbs(&last_wake, MS_TO_TICK(200));
+        taskDelayAbs(&last_wake, MS_TO_TICK(800));
     }
 }
 

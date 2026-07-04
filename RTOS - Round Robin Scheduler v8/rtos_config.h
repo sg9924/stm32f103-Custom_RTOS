@@ -13,7 +13,7 @@
 
 //Configurations
 //Systick
-#define TASK_QUANTA_MS                                1
+#define TASK_QUANTA_MS                                100
 #define TICK_RATE_HZ                                  (1000/TASK_QUANTA_MS)
 
 //Task Configurations

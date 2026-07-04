@@ -34,6 +34,8 @@ static void taskAdd_Check(uint8_t task_count)
 }
 
 
+
+#if SCHEDULER == SCHEDULER_ROUND_ROBIN
 tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word)
 {
     taskAdd_Check(task_count);
@@ -47,9 +49,10 @@ tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word)
         TCBS[task_count].task_id           = task_count;
         TCBS[task_count].task_state        = TASK_STATE_READY;
         TCBS[task_count].task_desc         = task_desc;
-        TCBS[task_count].task_weight       = 0;
-        TCBS[task_count].task_quota        = 0;
+        //TCBS[task_count].task_weight       = 0;
+        //TCBS[task_count].task_quota        = 0;
         TCBS[task_count].block_tick        = 0;
+        TCBS[task_count].task_blocked_at   = 0;
 
         #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
         TCBS[task_count].stack_size_word   = stack_size_word;
@@ -67,9 +70,11 @@ tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word)
     }
     return NULL;
 }
+#endif
 
 
 
+#if SCHEDULER == SCHEDULER_RR_WEIGHTED
 tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, uint8_t stack_size_word)
 {
     taskAdd_Check(task_count);
@@ -106,6 +111,7 @@ tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, 
 
 
 
+
 void taskReset_Quota(tcb_t* task)
 {
     if(!task) return;
@@ -126,6 +132,7 @@ void taskReset_QuotaAll()
         tcb = tcb + 1;
     }while(tcb <= (TCBS + NO_OF_TASKS));
 }
+#endif
 
 
 
@@ -135,9 +142,11 @@ void taskAdd_Idle()
     TCBS[0].task_state                 = TASK_STATE_READY;
     TCBS[0].task_desc                  = "Idle Task";
     TCBS[0].task_id                    = 0;
+    #if SCHEDULER == SCHEDULER_RR_WEIGHTED
     TCBS[0].task_weight                = 1;
     TCBS[0].task_quota                 = 0;
-
+    #endif
+    TCBS[0].task_blocked_at            = 0;
     #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
         TCBS[0].stack_size_word    = 50;
         TCBS[0].pstack             = Stack_Allocate(50);
@@ -272,18 +281,43 @@ void taskBlockAbs(tcb_t* task, uint32_t abs_timeout_tick)
 }
 
 
-
+//Task Unblock
+//Accounts for overflow in Systick and Block Tick
 void taskUnblock(void)
 {
     //for round robin, blocked_queue array always has one element only.
     tcb_t* t     = blocked_queue[0];
     tcb_t* tprev = NULL;
+    bool unblock;
 
-    //go through the tasks in the queue
+    //go through the tasks in the blocked queue
     while(t != NULL)
     {
+        //reset for next task
+        unblock = false;
+
         //check block tick
-        if(t->task_state == TASK_STATE_BLOCKED && (int32_t)(current_tick - t->block_tick) >= 0)
+        if(t->task_state == TASK_STATE_BLOCKED)
+        {
+            //systick overflow
+            if(current_tick < t->task_blocked_at)
+            {
+                //block tick overflow or no block tick overflow
+                if((t->block_tick < t->task_blocked_at && current_tick >= t->block_tick)
+                   || t->block_tick > t->task_blocked_at)
+                    unblock = true;
+            }
+            //no systick overflow
+            else if(current_tick >= t->task_blocked_at)
+            {
+                //no block tick overflow
+                if(current_tick >= t->block_tick && t->block_tick >= t->task_blocked_at)
+                    unblock = true;
+            }
+        }
+
+        //task should be unblocked
+        if(unblock)
         {
             tcb_t* tnext = t->pnext;
 
@@ -298,7 +332,7 @@ void taskUnblock(void)
             //add to ready queue
             t->block_tick = 0;
             ready_queue_add(t);
-            
+        
             t = tnext;
         }
         //just traverse to next task
@@ -320,6 +354,7 @@ void taskYield(bool higherPriorityTaskWoken)
         //Pend the PendSV Exception to handle context switch
         INTCTRL = PENDSVSET;
 }
+
 
 
 //Task Yield

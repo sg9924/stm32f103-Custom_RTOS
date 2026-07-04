@@ -77,7 +77,7 @@ void ready_queue_add(tcb_t* task)
         ready_queue[0] = task;
     else
     {
-        //get the starting task of the specific priority
+        //get the starting task
         tcb_t* i = ready_queue[0];
 
         //iterate till the end of the linked list
@@ -93,7 +93,7 @@ uint8_t ready_queue_remove(tcb_t* task, uint8_t state)
 {
     if(ready_queue[0] != NULL)
     {
-        //get the starting task of the specific priority
+        //get the starting task
         tcb_t* i = ready_queue[0];
 
         //starting task of queue matches
@@ -164,7 +164,7 @@ void blocked_queue_add(tcb_t* task)
         blocked_queue[0] = task;
     else
     {
-        //get the starting task of the specific priority
+        //get the starting task
         tcb_t* i = blocked_queue[0];
 
         //iterate till the end of the linked list
@@ -181,7 +181,7 @@ uint8_t blocked_queue_remove(tcb_t* task, uint8_t state)
 {
     if(blocked_queue[0] != NULL)
     {
-        //get the starting task of the specific priority
+        //get the starting task
         tcb_t* i = blocked_queue[0];
 
         //starting task of queue matches
@@ -383,6 +383,7 @@ void rtosKernel_Launch(uint32_t quanta)
 /*******************************************************Kernel APIs End****************************************************/
 
 /*****************************************************Scheduler APIs Start*************************************************/
+#if SCHEDULER == SCHEDULER_ROUND_ROBIN
 void rtosScheduler_RoundRobin(void)
 {
     //finished task (not idle task)
@@ -426,9 +427,11 @@ void rtosScheduler_RoundRobin(void)
 
     return;
 }
+#endif
 
 
 
+#if SCHEDULER == SCHEDULER_RR_WEIGHTED
 void rtosScheduler_RoundRobinWeighted(void)
 {
     //get the next task
@@ -490,7 +493,7 @@ void rtosScheduler_RoundRobinWeighted(void)
     }
     return;
 }
-
+#endif
 
 
 
@@ -573,7 +576,7 @@ __attribute__((naked)) void PendSV_Handler(void)
     //save R0,LR
     __asm("PUSH {R0,LR}");
 
-    //Call priority scheduler to select the next task.
+    //Call the scheduler to select the next task.
     //This updates the 'pcurrent' pointer variable to points to the new TCB.
     #if SCHEDULER == SCHEDULER_ROUND_ROBIN
     __asm("BL rtosScheduler_RoundRobin");

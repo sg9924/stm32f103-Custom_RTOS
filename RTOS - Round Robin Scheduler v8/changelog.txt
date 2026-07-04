@@ -29,3 +29,7 @@
 
 7: KERNEL
     - Add enter and exit Critical section APIs (ISR specific)
+
+8: KERNEL, TASK
+    - Make the certain structure fields in TCB and functions relevant only when the related scheduler is selected
+    - Improve taskUnblock to account for overflow in systick and block tick

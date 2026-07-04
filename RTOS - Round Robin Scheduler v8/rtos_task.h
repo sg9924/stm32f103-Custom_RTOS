@@ -33,7 +33,7 @@ typedef struct
 //!order of structure members should not be changed!
 typedef struct tcb
 {
-    uint32_t*    pstack;                             //pointer to the stack
+    uint32_t*    pstack;                             //pointer to the stack (should alays be first)
     uint8_t      stack_size_word;                    //size of task stack in words
     struct tcb*  pnext;                              //pointer to the next tcb structure (linked list)
     ptask_t      ptask_func;                         //pointer to the task function
@@ -41,9 +41,12 @@ typedef struct tcb
     uint8_t      task_state;                         //task state
     char*        task_desc;                          //task description
     uint32_t     block_tick;                         //ticks for which the task should be blocked
+    #if SCHEDULER == SCHEDULER_RR_WEIGHTED
     uint8_t      task_quota;                         //assigned task weight
     uint8_t      task_weight;                        //task wight for weighted round robin
-    uint8_t      task_priority;                      //priority: 0 (highest) to 255 (lowest)
+    #endif
+    uint32_t     task_blocked_at;
+    uint8_t      task_priority;
     task_noti_t  task_noti[TASK_NOTI_MAX_SIZE];      //task notification array
 }tcb_t;
 
