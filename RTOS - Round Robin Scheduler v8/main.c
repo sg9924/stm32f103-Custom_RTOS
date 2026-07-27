@@ -32,7 +32,7 @@ void task1(void)
         last_wake = Systick_get_tick();
         Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[0]->task_id, tcb_list[0]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN4);
-        taskDelayAbs(&last_wake, MS_TO_TICK(500));
+        taskDelayAbs(&last_wake, MS_TO_TICK(200));
     }
 }
 

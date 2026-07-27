@@ -7,10 +7,6 @@
 #define SCHEDULER_ROUND_ROBIN                         (1<<0)
 #define SCHEDULER_RR_WEIGHTED                         (1<<1)
 
-//Stack
-#define STACK_TYPE_COMMON                             0U
-#define STACK_TYPE_INDIVIDUAL                         1U
-
 //Configurations
 //Systick
 #define TASK_QUANTA_MS                                100
@@ -23,14 +19,8 @@
 
 
 //Stack Configurations
-#define STACK_TYPE                                    STACK_TYPE_COMMON
 #define STACKCOLOR_VALUE                              0xDEADBEEF
-
-#if STACK_TYPE == STACK_TYPE_COMMON
-#define STACKSIZE                                     200
-#elif STACK_TYPE == STACK_TYPE_INDIVIDUAL
-#define STACK_MAX_POOLSIZE                            512                   //no of words
-#endif
+#define STACK_MAX_POOLSIZE                            512                    //no of words
 
 //Scheduler Configurations
 #define RTOS_SCHEDULER_START_DELAY                    3000
