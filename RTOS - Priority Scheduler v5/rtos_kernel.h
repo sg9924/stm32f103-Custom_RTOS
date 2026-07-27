@@ -14,40 +14,62 @@
 #define INTCTRL          (*(volatile uint32_t *)0xE000ED04)
 #define PENDSVSET        (1UL << 28)
 
+#define WORD_ALIGN_8BYTE(value)         (((value) + 1) & ~1)
+
 
 
 //Critical Section APIs
+static inline uint32_t primask_read(void)
+{
+    uint32_t primask;
+    __asm volatile (
+        "MRS %0, PRIMASK"
+        : "=r" (primask)
+        :
+        : "memory"
+    );
+    return primask;
+}
+
+
+
+static inline void primask_write(uint32_t primask)
+{
+    __asm volatile (
+        "MSR PRIMASK, %0"
+        :
+        : "r" (primask)
+        : "memory"
+    );
+}
+
+
+
 //ISR
 //Enter Critical Section inside ISR
 static inline uint32_t enterCriticalISR(void)
 {
-    uint32_t temp;
-
-    //Read PRIMASk value into temp
-    //then disable the interrupts
-    __asm volatile(
-        "MRS %0, PRIMASK\n"
-        "CPSID I\n"
-        : "=r" (temp)
-        :
-        : "memory"
-    );
-
-    return temp;
+    //Read the recent primask value
+    uint32_t primask = primask_read();
+    //Disable all Interrupts
+    DISABLE_IRQ();
+    return primask;
 }
 
 
 //Exit Critical Section inside ISR
-static inline void exitCriticalISR(uint32_t prev_mask)
+static inline void exitCriticalISR(uint32_t primask)
 {
     //restore the PRIMASK state we had before
-    __asm volatile (
-        "MSR PRIMASK, %0\n"
-        : 
-        : "r" (prev_mask) 
-        : "memory"
-    );
+    primask_write(primask);
+    //clobber to indicate that memory has been modified
+    __asm volatile ("" ::: "memory");
 }
+
+
+//Macro versions
+#define CRITICAL_SECTION_ENTER(key)       uint32_t key = enterCriticalISR()
+#define CRITICAL_SECTION_EXIT(key)        exitCriticalISR(key)
 
 
 void rtosKernel_Init();

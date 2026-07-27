@@ -42,12 +42,10 @@ tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority
     TCBS[task_count].task_priority       = task_priority;
     TCBS[task_count].block_tick          = 0;
 
-    #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
     TCBS[task_count].stack_size_word   = stack_size_word;
     TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
     assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
-    assert((stack_size_word == 0), "Invalid Stack Size during Task Add");
-    #endif
+    assert((stack_size_word != 0), "Invalid Stack Size during Task Add");
     
     ready_queue_add(&TCBS[task_count]);
     taskNotify_Reset(&TCBS[task_count]);
@@ -65,11 +63,9 @@ void taskAdd_Idle()
     TCBS[0].task_id       = 0;
     TCBS[0].task_priority = MAX_NO_OF_PRIORITY -1 ; //lowest priority
 
-    #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
-        TCBS[0].stack_size_word    = 50;
-        TCBS[0].pstack             = Stack_Allocate(50);
-        assert((TCBS[0].pstack!=NULL), "Stack Allocation Failure");
-    #endif
+    TCBS[0].stack_size_word    = 100;
+    TCBS[0].pstack             = Stack_Allocate(100);
+    assert((TCBS[0].pstack!=NULL), "Stack Allocation Failure");
 }
 
 
