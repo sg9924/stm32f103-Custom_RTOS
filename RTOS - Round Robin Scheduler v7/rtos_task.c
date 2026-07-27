@@ -55,12 +55,10 @@ tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word)
         TCBS[task_count].task_quota        = 0;
         TCBS[task_count].block_tick        = 0;
 
-        #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
         TCBS[task_count].stack_size_word   = stack_size_word;
         TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
         assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
         assert((stack_size_word != 0), "Invalid Stack Size during Task Add");
-        #endif
 
         ready_queue_add(&TCBS[task_count]);
 
@@ -90,12 +88,10 @@ tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, 
         TCBS[task_count].task_quota        = 0;
         TCBS[task_count].block_tick        = 0;
 
-        #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
         TCBS[task_count].stack_size_word   = stack_size_word;
         TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
         assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
         assert((stack_size_word == 0), "Invalid Stack Size during Task Add");
-        #endif
 
         ready_queue_add(&TCBS[task_count]);
 
@@ -140,11 +136,9 @@ void taskAdd_Idle()
     TCBS[0].task_weight                = 1;
     TCBS[0].task_quota                 = 0;
 
-    #if STACK_TYPE == STACK_TYPE_INDIVIDUAL
-        TCBS[0].stack_size_word    = 50;
-        TCBS[0].pstack             = Stack_Allocate(50);
-        assert((TCBS[0].pstack!=NULL), "Stack Allocation Failure");
-    #endif
+    TCBS[0].stack_size_word    = 50;
+    TCBS[0].pstack             = Stack_Allocate(50);
+    assert((TCBS[0].pstack!=NULL), "Stack Allocation Failure");
 }
 
 

@@ -1,7 +1,5 @@
 1: INITIAL
     - Added support for individual stack size for each task
-    - common stack size is also present
-    - config is provided to switch between the 2 options
     - Task
         - taskAdd APIs have a new parameter - stack_size_word, this argument will be ignored when the RTOS is configured to use the common stack size
     - Kernel
@@ -41,3 +39,6 @@
 
 7: QUEUE
     - correct Queue metadata structure definition and APIs to remove priority field
+
+8: KERNEL, TASK
+    - Clean up Stack setup related Code

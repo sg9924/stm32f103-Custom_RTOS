@@ -36,3 +36,6 @@
 
 9: QUEUE
     - correct Queue metadata structure definition and APIs to remove priority field
+
+10: KERNEL, TASK
+    - Clean up Stack setup related Code
