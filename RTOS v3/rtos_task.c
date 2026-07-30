@@ -39,7 +39,7 @@ static void taskAdd_Check(uint8_t task_count)
 
 
 #if SCHEDULER == SCHEDULER_ROUND_ROBIN
-tcb_t* taskAdd(ptask_t func_ptr, char* task_desc)
+tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word)
 {
     taskAdd_Check(task_count);
 
@@ -50,6 +50,13 @@ tcb_t* taskAdd(ptask_t func_ptr, char* task_desc)
     TCBS[task_count].task_state        = TASK_STATE_READY;
     TCBS[task_count].task_desc         = task_desc;
     TCBS[task_count].block_tick        = 0;
+
+    TCBS[task_count].stack_size_word   = stack_size_word;
+    TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
+
+    assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
+    assert((stack_size_word != 0), "Invalid Stack Size during Task Add");
+
     ready_queue_add(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
@@ -60,7 +67,7 @@ tcb_t* taskAdd(ptask_t func_ptr, char* task_desc)
 
 
 #if SCHEDULER == SCHEDULER_RR_WEIGHTED
-tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
+tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, uint8_t stack_size_word)
 {
     taskAdd_Check(task_count);
 
@@ -72,6 +79,13 @@ tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
     TCBS[task_count].task_desc         = task_desc;
     TCBS[task_count].task_weight       = task_weight;
     TCBS[task_count].block_tick        = 0;
+
+    TCBS[task_count].stack_size_word   = stack_size_word;
+    TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
+    
+    assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
+    assert((stack_size_word != 0), "Invalid Stack Size during Task Add");
+
     ready_queue_add(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
@@ -81,7 +95,7 @@ tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight)
 
 
 #if SCHEDULER == SCHEDULER_PRIORITY
-tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority)
+tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority, uint8_t stack_size_word)
 {
     taskAdd_Check(task_count);
     
@@ -93,6 +107,13 @@ tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority
     TCBS[task_count].task_desc           = task_desc;
     TCBS[task_count].task_priority       = task_priority;
     TCBS[task_count].block_tick          = 0;
+
+    TCBS[task_count].stack_size_word     = stack_size_word;
+    TCBS[task_count].pstack              = Stack_Allocate(stack_size_word);
+    
+    assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
+    assert((stack_size_word != 0), "Invalid Stack Size during Task Add");
+
     ready_queue_add(&TCBS[task_count]);
 
     Serialprintln("'%s' task has been added", INFO, TCBS[task_count].task_desc);
@@ -128,18 +149,22 @@ void taskReset_QuotaAll()
 
 void taskAdd_Idle()
 {
-    TCBS[0].ptask_func  = &taskIdle;
-    TCBS[0].task_id     = 0;
-    TCBS[0].task_state  = TASK_STATE_READY;
-    TCBS[0].task_desc   = "Idle Task";
+    TCBS[0].ptask_func         = &taskIdle;
+    TCBS[0].task_id            = 0;
+    TCBS[0].task_state         = TASK_STATE_READY;
+    TCBS[0].task_desc          = "Idle Task";
     #if SCHEDULER == SCHEDULER_RR_WEIGHTED
-    TCBS[0].task_weight = 1;
-    TCBS[0].task_quota  = 0;
+    TCBS[0].task_weight        = 1;
+    TCBS[0].task_quota         = 0;
     #endif
     #if SCHEDULER == SCHEDULER_PRIORITY
-    TCBS[0].task_priority = TASK_MAX_NO_OF_PRIORITY-1;  //lowest priority
+    TCBS[0].task_priority      = TASK_MAX_NO_OF_PRIORITY-1;  //lowest priority
     #endif
-    TCBS[0].block_tick  = 0;
+    TCBS[0].block_tick         = 0;
+
+    TCBS[0].stack_size_word    = 50;
+    TCBS[0].pstack             = Stack_Allocate(50);
+    assert((TCBS[0].pstack!=NULL), "Stack Allocation Failure");
 }
 
 

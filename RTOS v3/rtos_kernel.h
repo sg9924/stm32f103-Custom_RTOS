@@ -9,9 +9,14 @@
 
 #define MS_TO_TICK(ms_value)     (((ms_value * TICK_RATE_HZ) + (1000-1))/1000)
 
+#define WORD_ALIGN_8BYTE(value)         (((value) + 1) & ~1)
+
 
 void rtosKernel_Init();
 void rtosKernel_Launch(uint32_t quanta);
+
+//Stack Allocate
+uint32_t* Stack_Allocate(uint32_t size_in_words);
 
 uint8_t assert(uint8_t condition, char* assert_msg);
 

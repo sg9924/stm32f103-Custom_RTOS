@@ -4,7 +4,22 @@
 #include "Semaphore.h"
 #include "rtos_config.h"
 
-tcb_t* task_handle[3];
+tcb_t* tcb_list[3];
+
+void gpio_led_init()
+{
+    GPIO_Handle G;
+    //Red LED - Pin A4
+    GPIO_Config(&G, GPIOA, GPIO_MODE_OP, GPIO_CONFIG_GP_OP_PP, GPIO_PIN4, GPIO_OP_SPEED_2);
+    GPIO_Init(&G);
+    //Yellow LED - Pin A5
+    GPIO_Config(&G, GPIOA, GPIO_MODE_OP, GPIO_CONFIG_GP_OP_PP, GPIO_PIN5, GPIO_OP_SPEED_2);
+    GPIO_Init(&G);
+    //Green LED - Pin A6
+    GPIO_Config(&G, GPIOA, GPIO_MODE_OP, GPIO_CONFIG_GP_OP_PP, GPIO_PIN6, GPIO_OP_SPEED_2);
+    GPIO_Init(&G);
+}
+
 
 void task1(void)
 {
@@ -12,7 +27,10 @@ void task1(void)
     {
         //Serialprintln("[Tick: %x] [Weight: %d] [Remaining Quota: %d] This is Task 1 running...", INFO, Systick_get_tick(), task_handle[0]->task_weight, task_handle[0]->task_quota);
         //Serialprintln("[Tick: %x] This is Task 1 running...", INFO, Systick_get_tick());
-        Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] This is Task 1 running...", INFO, Systick_get_tick(), task_handle[0]->task_id, task_handle[0]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[0]->task_id, tcb_list[0]->task_priority);
+        //GPIO_OpToggle(GPIOA, GPIO_PIN4);
+        //tim_delay_ms(500);
+        //taskDelay(MS_TO_TICK(500));
     }
 }
 
@@ -22,7 +40,9 @@ void task2(void)
     {
         //Serialprintln("[Tick: %x] [Weight: %d] [Remaining Quota: %d] This is Task 2 running...", INFO, Systick_get_tick(), task_handle[1]->task_weight, task_handle[1]->task_quota); 
         //Serialprintln("[Tick: %x] This is Task 2 running...", INFO, Systick_get_tick());
-        Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] This is Task 2 running...", INFO, Systick_get_tick(), task_handle[1]->task_id, task_handle[1]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
+        GPIO_OpToggle(GPIOA, GPIO_PIN5);
+        tim_delay_ms(600);
     }
 }
 
@@ -33,7 +53,9 @@ void task3(void)
     {
         //Serialprintln("[Tick: %x] [Weight: %d] [Remaining Quota: %d] This is Task 3 running...", INFO, Systick_get_tick(), task_handle[2]->task_weight, task_handle[2]->task_quota); 
         //Serialprintln("[Tick: %x] This is Task 3 running...", INFO, Systick_get_tick()); 
-        Serialprintln("[Tick: %x] [ID: %d] [Priority: %d] This is Task 3 running...", INFO, Systick_get_tick(), task_handle[2]->task_id, task_handle[2]->task_priority);
+        Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
+        GPIO_OpToggle(GPIOA, GPIO_PIN6);
+        tim_delay_ms(700);
     }
 }
 
@@ -43,8 +65,8 @@ void task3(void)
 int main(void)
 {
     board_init();
-
     rtosKernel_Init();
+    gpio_led_init();
 
     //Add the tasks with weights
     //task_handle[0] = taskAdd_Weighted(&task1, "Task 1", 4);
@@ -57,9 +79,9 @@ int main(void)
     //task_handle[2] = taskAdd(&task3, "Task 3");
 
     //Add the tasks with priorities
-    task_handle[0] = taskAdd_Priority(&task1, "Task 1", 3);
-    task_handle[1] = taskAdd_Priority(&task2, "Task 2", 0);
-    task_handle[2] = taskAdd_Priority(&task3, "Task 3", 0);
+    tcb_list[0] = taskAdd_Priority(&task1, "Task 1", 0, 70);
+    tcb_list[1] = taskAdd_Priority(&task2, "Task 2", 1, 70);
+    tcb_list[2] = taskAdd_Priority(&task3, "Task 3", 2, 70);
 
     //Launch Kernel
     rtosKernel_Launch(TASK_QUANTA_MS);

@@ -1,7 +1,7 @@
 #ifndef __RTOSCONFIG_H__
 #define __RTOSCONFIG_H__
 
-//Definitons
+//Definitions
 //Scheduler Definitions
 #define SCHEDULER_ROUND_ROBIN                         (1<<0)
 #define SCHEDULER_RR_WEIGHTED                         (1<<1)
@@ -12,18 +12,20 @@
 #define TASK_QUANTA_MS                                1000
 #define TICK_RATE_HZ                                  (1000/TASK_QUANTA_MS)
 
-//Tasks
+//Task Configurations
 #define NO_OF_TASKS                                   3
-#define STACKSIZE                                     200
 #define TASK_DESC_LENGTH                              100
 #define TASK_MAX_NO_OF_PRIORITY                       4
 
-//Scheduler
+//Stack Configurations
+#define STACKCOLOR_VALUE                              0xDEADBEEF
+#define STACK_MAX_POOLSIZE                            512                    //no of words
+
+//Scheduler Configurations
+#define RTOS_SCHEDULER_START_DELAY                    3000
 #define RTOS_SCHEDULER_START_DELAY                    3000
 #define SCHEDULER                                     SCHEDULER_PRIORITY
 
-
-//Configurations
 //0 - disabled
 //1 - enabled
 
