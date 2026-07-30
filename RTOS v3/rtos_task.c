@@ -162,8 +162,8 @@ void taskAdd_Idle()
     #endif
     TCBS[0].block_tick         = 0;
 
-    TCBS[0].stack_size_word    = 50;
-    TCBS[0].pstack             = Stack_Allocate(50);
+    TCBS[0].stack_size_word    = 100;
+    TCBS[0].pstack             = Stack_Allocate(100);
     assert((TCBS[0].pstack!=NULL), "Stack Allocation Failure");
 }
 
@@ -193,21 +193,25 @@ void taskDelay(uint32_t tick)
 
 void taskBlock(tcb_t* task, uint32_t timeout_tick)
 {
+    //current task is assumed if no task is passed as input
     if(task == NULL)
         task = pcurrent;
     
+    //task should not be idle task and it should not be blocked already
     if(task->task_id != 0 && task->task_state != TASK_STATE_BLOCKED)
     {
+        //set task as blocked
         task->task_state = TASK_STATE_BLOCKED;
 
         //set block ticks
         task->block_tick = current_tick + timeout_tick;
 
         //insert into blocked queue
+        //this task will be removed from the ready queue by the scheduler
         blocked_queue_add(task);
 
-        //Pend the systick Exception to switch to next task
-        SYSTICK_EXCEPTION_PEND();
+        //Pend the PendSV Exception to handle context switch
+        INTCTRL = PENDSVSET;
     }
 }
 
@@ -215,39 +219,54 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
 
 void taskUnblock(void)
 {
-    //for round robin, blocked_queue array always has one element only.
-    tcb_t* t = blocked_queue[0];
-    tcb_t* tprev = NULL;
+    uint8_t priority, yield = 0;
+    #if SCHEDULER == SCHEDULER_PRIORITY
+    priority = TASK_MAX_NO_OF_PRIORITY;
+    #endif
 
-    //go through the tasks in the queue
-    while(t != NULL)
+    //iterate through each priority from highest to lowest
+    for(uint8_t i=0; i<priority; i++)
     {
-        //check block tick
-        if(t->task_state == TASK_STATE_BLOCKED && (int32_t)(current_tick - t->block_tick) >= 0)
-        {
-            tcb_t* tnext = t->pnext;
+        //get the starting task of the priority
+        tcb_t* t = blocked_queue[i];
+        tcb_t* tprev = NULL;
 
-            //remove from blocked queue
-            //remove head
-            if(tprev == NULL)
-                blocked_queue[0] = tnext;
-            //remove middle or last
+        //go through the tasks in the queue
+        while(t != NULL)
+        {
+            //check block tick
+            //Signed Comparison to Handle Tick Overflow - Works only for half the range of uint32_t
+            //as long as the delay value is under the half range value, tick overflow will be handled
+            if(t->task_state == TASK_STATE_BLOCKED && (int32_t)(current_tick - t->block_tick) >= 0)
+            {
+                tcb_t* tnext = t->pnext;
+
+                //remove from blocked queue
+                //remove head
+                if(tprev == NULL)
+                    blocked_queue[i] = tnext;
+                //remove middle or last
+                else
+                    tprev->pnext = tnext;
+
+                //add to ready queue
+                t->block_tick = 0;
+                ready_queue_add(t);
+
+                //compare the priorities of the unblocked task and current task
+                if(t->task_priority > pcurrent->task_priority)
+                    yield = 1;
+                
+                t = tnext;
+            }
             else
-                tprev->pnext = tnext;
-
-            //add to ready queue
-            t->block_tick = 0;
-            ready_queue_add(t);
-            
-            t = tnext;
-        }
-        //just traverse to next task
-        else
-        {
-            tprev = t;
-            t = t->pnext;
+            {
+                tprev = t;
+                t = t->pnext;
+            }
         }
     }
+    if(yield) taskYield();
     return;
 }
 
@@ -255,8 +274,8 @@ void taskUnblock(void)
 
 void taskYield(void)
 {
-    SYSTICK_CLEAR();
-    SYSTICK_EXCEPTION_PEND();
+    //Pend the PendSV Exception to handle context switch
+    INTCTRL = PENDSVSET;
 }
 
 

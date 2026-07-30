@@ -28,9 +28,9 @@ void task1(void)
         //Serialprintln("[Tick: %x] [Weight: %d] [Remaining Quota: %d] This is Task 1 running...", INFO, Systick_get_tick(), task_handle[0]->task_weight, task_handle[0]->task_quota);
         //Serialprintln("[Tick: %x] This is Task 1 running...", INFO, Systick_get_tick());
         Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[0]->task_id, tcb_list[0]->task_priority);
-        //GPIO_OpToggle(GPIOA, GPIO_PIN4);
+        GPIO_OpToggle(GPIOA, GPIO_PIN4);
         //tim_delay_ms(500);
-        //taskDelay(MS_TO_TICK(500));
+        taskDelay(MS_TO_TICK(500));
     }
 }
 
@@ -42,7 +42,8 @@ void task2(void)
         //Serialprintln("[Tick: %x] This is Task 2 running...", INFO, Systick_get_tick());
         Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN5);
-        tim_delay_ms(600);
+        //tim_delay_ms(600);
+        taskDelay(MS_TO_TICK(600));
     }
 }
 
@@ -55,7 +56,8 @@ void task3(void)
         //Serialprintln("[Tick: %x] This is Task 3 running...", INFO, Systick_get_tick()); 
         Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN6);
-        tim_delay_ms(700);
+        //tim_delay_ms(700);
+        taskDelay(MS_TO_TICK(700));
     }
 }
 
