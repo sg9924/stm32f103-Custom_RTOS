@@ -142,6 +142,7 @@ void taskAdd_Idle()
     TCBS[0].task_weight                = 1;
     TCBS[0].task_quota                 = 0;
     #endif
+    TCBS[0].block_tick                 = 0;
     TCBS[0].task_blocked_at            = 0;
     
     TCBS[0].stack_size_word    = 50;

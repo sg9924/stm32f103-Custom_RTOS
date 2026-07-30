@@ -244,6 +244,7 @@ uint32_t* Stack_Allocate(uint32_t size_in_words)
 
 
 
+//Task Stack Initialize
 static void rtosKernel_TaskStackInit(uint8_t task_num)
 {
     //Get Stack Top

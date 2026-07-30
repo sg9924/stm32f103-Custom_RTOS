@@ -39,3 +39,4 @@
 
 10: KERNEL, TASK
     - Clean up Stack setup related Code
+    - Improve Critical Section Enter Exit APIs

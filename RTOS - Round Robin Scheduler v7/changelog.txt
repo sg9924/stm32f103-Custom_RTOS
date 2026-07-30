@@ -1,7 +1,7 @@
 1: INITIAL
     - Added support for individual stack size for each task
     - Task
-        - taskAdd APIs have a new parameter - stack_size_word, this argument will be ignored when the RTOS is configured to use the common stack size
+        - taskAdd APIs have a new parameter - stack_size_word
     - Kernel
         - New API: Stack_Allocate(uint32_t size_in_words), used to allocate the stack for each task, basically a arena allocator but not actually dynamic memory allocation
           just yet. Later the first heap of Arena Allocator type will be added and this code will be modified to use that
