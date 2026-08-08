@@ -45,10 +45,11 @@ void taskAdd_Idle();
 tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority, uint8_t stack_size_word);
 
 
-void taskDelay(uint32_t tick);
+void taskDelay(uint32_t delay_tick);
 void taskBlock(tcb_t* task, uint32_t timeout_tick);
 void taskUnblock(void);
-void taskYield(void);
+void taskYield(bool higherPriorityTaskWoken);
+void taskYieldFromISR(bool higherPriorityTaskWoken);
 
 ptask_t getTaskFunc(uint8_t task_num);
 ptask_t* getTaskFunc_List();

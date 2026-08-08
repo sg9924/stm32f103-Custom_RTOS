@@ -40,7 +40,7 @@ void Semaphore_CooperativeTake(int8_t *semaphore)
     while(*semaphore<=0)
     {
         DISABLE_IRQ();
-        taskYield();
+        taskYield(true);
         ENABLE_IRQ();
     }
 
