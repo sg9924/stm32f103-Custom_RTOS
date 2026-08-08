@@ -166,6 +166,7 @@ static void taskIdle(void)
 //Does not include the task execution time in the delay
 void taskDelay(uint32_t delay_tick)
 {
+    if(delay_tick == 0) return;
     taskBlock(NULL, delay_tick);
 }
 
@@ -231,9 +232,13 @@ void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick)
 //task will be blocked for the duration provided relative to current tick
 void taskBlock(tcb_t* task, uint32_t timeout_tick)
 {
+    if(timeout_tick == 0) return;
+
+    //current task is assumed if no task is passed as input
     if(task == NULL)
         task = pcurrent;
     
+        //task should not be idle task and it should not be blocked already
     if(task->task_id != 0 && task->task_state != TASK_STATE_BLOCKED)
     {
         task->task_state = TASK_STATE_BLOCKED;
@@ -344,22 +349,20 @@ void taskUnblock(void)
 
 
 //Task Yield
-void taskYield(bool higherPriorityTaskWoken)
+void taskYield()
 {
-    if(higherPriorityTaskWoken)
-        //Pend the PendSV Exception to handle context switch
-        INTCTRL = PENDSVSET;
+    //Pend the PendSV Exception to handle context switch
+    INTCTRL = PENDSVSET;
 }
 
 
 
-//Task Yield
+//Task Yield ISR
 //To be used only in ISR
-void taskYieldFromISR(bool higherPriorityTaskWoken)
+void taskYieldFromISR()
 {
-    if(higherPriorityTaskWoken)
-        //Pend the PendSV Exception to handle context switch
-        INTCTRL = PENDSVSET;
+    //Pend the PendSV Exception to handle context switch
+    INTCTRL = PENDSVSET;
 }
 
 
