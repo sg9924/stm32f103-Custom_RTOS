@@ -278,9 +278,18 @@ void taskUnblock(void)
 //Task Yield
 void taskYield(bool higherPriorityTaskWoken)
 {
-    if(higherPriorityTaskWoken)
+    //Higher Priority task woken condition should be checked for Priority Scheduler
+    //if true, we yield
+    #if SCHEDULER == SCHEDULER_PRIORITY
+        if(higherPriorityTaskWoken)
+            //Pend the PendSV Exception to handle context switch
+            INTCTRL = PENDSVSET;
+    //for round robin including weighted, condition need not be checked
+    //we yield regardless of the condition
+    #else
         //Pend the PendSV Exception to handle context switch
         INTCTRL = PENDSVSET;
+    #endif
 }
 
 
@@ -289,9 +298,18 @@ void taskYield(bool higherPriorityTaskWoken)
 //To be used only in ISR
 void taskYieldFromISR(bool higherPriorityTaskWoken)
 {
-    if(higherPriorityTaskWoken)
+    //Higher Priority task woken condition should be checked for Priority Scheduler
+    //if true, we yield
+    #if SCHEDULER == SCHEDULER_PRIORITY
+        if(higherPriorityTaskWoken)
+            //Pend the PendSV Exception to handle context switch
+            INTCTRL = PENDSVSET;
+    //for round robin including weighted, condition need not be checked
+    //we yield regardless of the condition
+    #else
         //Pend the PendSV Exception to handle context switch
         INTCTRL = PENDSVSET;
+    #endif
 }
 
 
