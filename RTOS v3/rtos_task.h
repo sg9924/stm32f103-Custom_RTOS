@@ -3,6 +3,7 @@
 #include<stdint.h>
 
 #include "rtos_config.h"
+#include "stm32f103xx_utilities.h"
 
 
 #define TASK_STATE_READY            ('A')
@@ -45,10 +46,11 @@ tcb_t* taskAdd_Priority(ptask_t func_ptr, char* task_desc, uint8_t task_priority
 void taskAdd_Idle();
 
 
-void taskDelay(uint32_t tick);
+void taskDelay(uint32_t delay_tick);
 void taskBlock(tcb_t* task, uint32_t timeout_tick);
 void taskUnblock(void);
-void taskYield(void);
+void taskYield(bool higherPriorityTaskWoken);
+void taskYieldFromISR(bool higherPriorityTaskWoken);
 
 #if SCHEDULER == SCHEDULER_RR_WEIGHTED
 void taskReset_Quota(tcb_t* task);

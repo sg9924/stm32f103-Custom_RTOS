@@ -185,14 +185,17 @@ void taskIdle(void)
 
 
 
-void taskDelay(uint32_t tick)
+void taskDelay(uint32_t delay_tick)
 {
-    taskBlock(NULL, tick);
+    if(delay_tick == 0) return;
+    taskBlock(NULL, delay_tick);
 }
 
 
 void taskBlock(tcb_t* task, uint32_t timeout_tick)
 {
+    if(timeout_tick == 0) return;
+    
     //current task is assumed if no task is passed as input
     if(task == NULL)
         task = pcurrent;
@@ -266,18 +269,30 @@ void taskUnblock(void)
             }
         }
     }
-    if(yield) taskYield();
+    if(yield) taskYield(yield);
     return;
 }
 
 
 
-void taskYield(void)
+//Task Yield
+void taskYield(bool higherPriorityTaskWoken)
 {
-    //Pend the PendSV Exception to handle context switch
-    INTCTRL = PENDSVSET;
+    if(higherPriorityTaskWoken)
+        //Pend the PendSV Exception to handle context switch
+        INTCTRL = PENDSVSET;
 }
 
+
+
+//Task Yield ISR
+//To be used only in ISR
+void taskYieldFromISR(bool higherPriorityTaskWoken)
+{
+    if(higherPriorityTaskWoken)
+        //Pend the PendSV Exception to handle context switch
+        INTCTRL = PENDSVSET;
+}
 
 
 

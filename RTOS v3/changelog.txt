@@ -28,3 +28,7 @@
     - task yield pends the pendsv exception instead of systick
     - ready queue block API bug fix
     - Improvement in taskUnbock API
+
+4. TASK:
+    - Add taskyieldFromISR
+    - Modify taskYield to include a parameter which inidcates whether a higher priority task was woken or not
