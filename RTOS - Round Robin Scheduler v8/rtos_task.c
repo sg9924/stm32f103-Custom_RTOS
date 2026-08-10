@@ -238,7 +238,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
     if(task == NULL)
         task = pcurrent;
     
-        //task should not be idle task and it should not be blocked already
+    //task should not be idle task and it should not be blocked already
     if(task->task_id != 0 && task->task_state != TASK_STATE_BLOCKED)
     {
         task->task_state = TASK_STATE_BLOCKED;

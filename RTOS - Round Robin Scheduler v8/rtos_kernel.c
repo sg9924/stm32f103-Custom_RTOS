@@ -487,7 +487,7 @@ void rtosScheduler_RoundRobinWeighted(void)
 
 
 
-
+//Scheduler Launch
 __attribute__((naked)) static void rtosScheduler_Launch(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit

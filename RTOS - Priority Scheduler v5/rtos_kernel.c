@@ -407,7 +407,7 @@ static void rtosScheduler_Priority()
     //current task - still running and its not a idle task
     if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)
     {
-        //set loop limit for pirority
+        //set loop limit for priority
         loop_priority = pcurrent->task_priority;
         //add to ready queue
         ready_queue_add(pcurrent);
