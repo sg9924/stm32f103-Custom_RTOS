@@ -1,0 +1,13 @@
+1: INITIAL
+    - Kernel
+        - Introduce PSP
+        - Until now MSP was used by both the Kernel and the tasks
+        - Now MSP is used only by the kernel
+        - PSP is used only by the Tasks
+        - rtosScheduler_Launch & PendSV_Handler have been modified
+        - SVC_Handler IRQ Handler has been implemented which together with rtosScheduler_Launch launches the first task
+    - Task
+        - SCHEDULER_SWITCH_CONTEXT() Macro -> basically pends the Pend SV IRQ
+        - original taskUnblock renamed to taskCheck_BlockedListTimeout
+        - new taskUnblock unblocks a specific task provided by the caller through a task id
+        - new: getTask_ByID -> gets a pointer to the TCB (Task) for the task id provided
