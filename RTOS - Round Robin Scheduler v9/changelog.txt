@@ -11,3 +11,16 @@
         - original taskUnblock renamed to taskCheck_BlockedListTimeout
         - new taskUnblock unblocks a specific task provided by the caller through a task id
         - new: getTask_ByID -> gets a pointer to the TCB (Task) for the task id provided
+
+2: Linker, Startup, Task, Kernel
+    - Linker
+        - Introduce user stack section to reserve some minimum space for stack
+    - Startup
+        - Introduce stack_watermark() to watermark the entire stack with 0xAAAAAAAA
+        - Introduce stack_high_water_mark() to get the latest stack pointer value
+    - Kernel
+        - few corrections in rtosKernel_TaskStackInit
+    - Task
+        - Introduce pstack_base and modify stack_size_word from uint8_t to uint32_t in TCB
+        - Assert for minimum stack size TASKSTACK_MINIMUM which is introduced in rtos_config.h
+        - initialize pstack_base along with pstack

@@ -4,7 +4,9 @@
 #include "Semaphore.h"
 #include "stm32f103xx_utilities.h"
 
-
+#define TASK1_DELAY_MS         MS_TO_TICK(200)
+#define TASK2_DELAY_MS         MS_TO_TICK(400)
+#define TASK3_DELAY_MS         MS_TO_TICK(800)
 
 tcb_t* tcb_list[NO_OF_TASKS];
 
@@ -32,7 +34,7 @@ void task1(void)
         last_wake = Systick_get_tick();
         Serialprintln("[Tick: %x] [ID: %d] Task 1", INFO, Systick_get_tick(), tcb_list[0]->task_id, tcb_list[0]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN4);
-        taskDelayAbs(&last_wake, MS_TO_TICK(200));
+        taskDelayAbs(&last_wake, TASK1_DELAY_MS);
     }
 }
 
@@ -45,7 +47,7 @@ void task2(void)
         last_wake = Systick_get_tick();
         Serialprintln("[Tick: %x] [ID: %d] Task 2", INFO, Systick_get_tick(), tcb_list[1]->task_id, tcb_list[1]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN5);
-        taskDelayAbs(&last_wake, MS_TO_TICK(400));
+        taskDelayAbs(&last_wake, TASK2_DELAY_MS);
     }
 }
 
@@ -59,7 +61,7 @@ void task3(void)
         last_wake = Systick_get_tick();
         Serialprintln("[Tick: %x] [ID: %d] Task 3", INFO, Systick_get_tick(), tcb_list[2]->task_id, tcb_list[2]->task_priority);
         GPIO_OpToggle(GPIOA, GPIO_PIN6);
-        taskDelayAbs(&last_wake, MS_TO_TICK(800));
+        taskDelayAbs(&last_wake, TASK3_DELAY_MS);
     }
 }
 

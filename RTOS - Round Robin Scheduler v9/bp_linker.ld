@@ -6,6 +6,12 @@ MEMORY
 	SRAM(rwx):ORIGIN =0x20000000,LENGTH =20K
 }
 
+/*initial stack pointer*/
+_estack = ORIGIN(SRAM) + LENGTH(SRAM);
+/*minimum stack size*/
+_Min_Stack_Size = 0x400;
+
+
 SECTIONS
 {
 	.text :
@@ -35,5 +41,14 @@ SECTIONS
 		__bss_end__ = .;
 		. = ALIGN(4);
 		end = .;
+	}> SRAM
+
+	/*user stack section reserves some space, linker will fail at compile time if .bss + minimum stack doesn't fit in stack*/
+	._user_stack :
+	{
+		. = ALIGN(8);
+		_sstack = .;
+		. = . + _Min_Stack_Size;
+		. = ALIGN(8);
 	}> SRAM
 }

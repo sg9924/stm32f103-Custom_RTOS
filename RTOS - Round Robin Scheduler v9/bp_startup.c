@@ -202,8 +202,27 @@ void Default_Handler(void)
 	while(1);
 }
 
-/*
 
 
+//_estack: initial stack pointer, stack start
+//_sstack: stack end 
+extern uint32_t _estack, _sstack;
 
-*/
+//Stack Watermarking
+void stack_watermark(void)
+{
+    uint32_t *p = &_sstack;
+    while (p < (uint32_t *)&_estack)
+	{
+        *p++ = 0xAAAAAAAA;
+    }
+}
+
+
+//Get Stack High Watermark
+uint32_t stack_high_water_mark(void)
+{
+    uint32_t *p = &_sstack;
+    while (*p == 0xAAAAAAAA) p++;
+    return ((uint32_t)&_estack - (uint32_t)p);
+}

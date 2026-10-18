@@ -8,7 +8,7 @@ FLASH=st-flash --reset write
 PROBE=st-info --probe
 
 #Toolchain Paths
-OPENOCD_DIR=D:\Software\xpack-openocd-0.12.0-3\openocd
+OPENOCD_DIR=C:\Users\Saai\DATA\Applications\ARM\xpack-openocd-0.12.0-3-win32-x64\xpack-openocd-0.12.0-3
 
 #Openocd
 #Configuration File
@@ -28,7 +28,7 @@ INC_DIR=../Drivers/Inc
 SRC_DIR=../Drivers/Src
 
 #Files
-MAIN=Test_Task_Yield
+MAIN=main
 ELF=final.elf
 STARTUP=bp_startup
 SYSCALLS=syscalls

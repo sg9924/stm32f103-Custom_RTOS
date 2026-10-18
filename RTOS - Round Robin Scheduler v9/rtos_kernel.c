@@ -263,19 +263,19 @@ static void rtosKernel_TaskStackInit(uint8_t task_num)
     //below line for MSP usage only
     //pstack--; *pstack = 0xFFFFFFF9;                            //LR - Return to Thread mode and use MSP (not yet introduced PSP for tasks)
 
-    //below line for PSP uasage for tasks and MSP for rest
+    //below line for PSP uasage for tasks and MSP for kernel
     pstack--; *pstack = 0xFFFFFFFD;                            //LR - Return to Thread mode and use PSP
 
     //initializing stack with dummy contents for other registers
-    for(int16_t i=4; i<=16; i++)
+    for(uint32_t i=4; i<=16; i++)
     {
         pstack--; *pstack = 0;                                //Dummy values
     }
 
     //stack coloring for rest of the stack
-    for(int16_t i=17; i<=TCBS[task_num].stack_size_word; i++)
+    for(uint32_t i=17; i<=TCBS[task_num].stack_size_word; i++)
     {
-        pstack--; *pstack  = STACKCOLOR_VALUE;                 //Stack Color Value
+        pstack--; *pstack  = TASKSTACK_COLOR_VALUE;           //Stack Color Value
     }
 }
 

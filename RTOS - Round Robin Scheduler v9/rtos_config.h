@@ -19,7 +19,8 @@
 
 
 //Stack Configurations
-#define STACKCOLOR_VALUE                              0xDEADBEEF
+#define TASKSTACK_COLOR_VALUE                         0xDEADBEEF
+#define TASKSTACK_MINIMUM                             30                     //Minimum Stack for a task (should definitely be greater than 16 and more if local variables are being used in the task)
 #define STACK_MAX_POOLSIZE                            512                    //no of words
 
 //Scheduler Configurations

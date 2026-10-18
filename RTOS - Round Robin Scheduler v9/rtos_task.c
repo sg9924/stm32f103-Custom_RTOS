@@ -71,7 +71,10 @@ tcb_t* taskAdd(ptask_t func_ptr, char* task_desc, uint8_t stack_size_word)
         TCBS[task_count].task_blocked_at   = 0;
 
         TCBS[task_count].stack_size_word   = stack_size_word;
-        TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
+        TCBS[task_count].pstack_base       = Stack_Allocate(stack_size_word); //pstack_base will not change and should not be
+        TCBS[task_count].pstack            = TCBS[task_count].pstack_base;    //pstack will change later during the Task Stack init
+
+        assert(stack_size_word > TASKSTACK_MINIMUM, "Minimum Stack should be 30 words");
         assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
         assert((stack_size_word != 0), "Invalid Stack Size during Task Add");
 
@@ -108,6 +111,9 @@ tcb_t* taskAdd_Weighted(ptask_t func_ptr, char* task_desc, uint8_t task_weight, 
 
         TCBS[task_count].stack_size_word   = stack_size_word;
         TCBS[task_count].pstack            = Stack_Allocate(stack_size_word);
+        TCBS[task_count].pstack_base       = Stack_Allocate(stack_size_word); //pstack_base will not change and should not be
+
+        assert(stack_size_word > TASKSTACK_MINIMUM, "Minimum Stack should be 30 words");
         assert((TCBS[task_count].pstack!=NULL), "Stack Allocation Failure");
         assert((stack_size_word == 0), "Invalid Stack Size during Task Add");
 

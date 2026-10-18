@@ -33,8 +33,9 @@ typedef struct
 //!order of structure members should not be changed!
 typedef struct tcb
 {
-    uint32_t*    pstack;                             //pointer to the stack (should alays be first)
-    uint8_t      stack_size_word;                    //size of task stack in words
+    uint32_t*    pstack;                             //pointer to the live stack (should always be first)
+    uint32_t*    pstack_base;                        //initial assigned stack value without the stack frame
+    uint32_t     stack_size_word;                    //size of task stack in words
     struct tcb*  pnext;                              //pointer to the next tcb structure (linked list)
     ptask_t      ptask_func;                         //pointer to the task function
     uint8_t      task_id;                            //task identifier
