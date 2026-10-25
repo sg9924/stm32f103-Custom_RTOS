@@ -8,8 +8,8 @@
         - SVC_Handler IRQ Handler has been implemented which together with rtosScheduler_Launch launches the first task
     - Task
         - SCHEDULER_SWITCH_CONTEXT() Macro -> basically pends the Pend SV IRQ
-        - original taskUnblock renamed to taskCheck_BlockedListTimeout
-        - new taskUnblock unblocks a specific task provided by the caller through a task id
+        - original taskUnblock renamed to taskCheckandUnblock
+        - new taskUnblock unblocks a specific task provided by the caller
         - new: getTask_ByID -> gets a pointer to the TCB (Task) for the task id provided
 
 2: Linker, Startup, Task, Kernel
@@ -29,4 +29,4 @@
     - cleanup critical section enter and exit macros
 
 4: Task Unblock
-    - Correct Task Unblock Logic
+    - Corrected Task Unblock Logic
