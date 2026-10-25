@@ -4,7 +4,6 @@
 #include "rtos_config.h"
 #include "rtos_info.h"
 #include "rtos_task.h"
-#include "rtos_port.h"
 
 
 //external variables
@@ -295,7 +294,7 @@ static void rtosKernel_TaskStackInit(uint8_t task_num)
     //stack coloring for rest of the stack
     for(int16_t i=17; i<=TCBS[task_num].stack_size_word; i++)
     {
-        pstack--; *pstack  = STACKCOLOR_VALUE;                 //Stack Color Value
+        pstack--; *pstack  = TASKSTACK_COLOR_VALUE;                 //Stack Color Value
     }
 }
 
@@ -316,7 +315,7 @@ static void rtosKernel_StackInit(void)
 static void rtosKernel_TaskInit(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
-    CRITICAL_SECTION_ENTER(key);
+    CRITICAL_SECTION_ENTER();
 
     //Add Idle Task
     taskAdd_Idle();
@@ -330,7 +329,7 @@ static void rtosKernel_TaskInit(void)
     #endif
 
     //Enable all global Interrupts - clearing PRIMASK bit
-    CRITICAL_SECTION_EXIT(key);
+    CRITICAL_SECTION_EXIT();
 }
 
 
@@ -510,11 +509,11 @@ void SysTick_Handler(void)
 
     //Increment SysTick
     Systick_Tick_Inc();
-    //Unblock necessary tasks
-    taskUnblock();
+    //Check and Unblock valid tasks
+    taskCheckAndUnblock();
 
     //Pend the PendSV Exception to handle context switch
-    INTCTRL = PENDSVSET;
+    SCHEDULER_SWITCH_CONTEXT();
 
     ENABLE_IRQ();
 }

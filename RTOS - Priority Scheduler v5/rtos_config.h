@@ -17,7 +17,7 @@
 #define MAX_NO_OF_PRIORITY                            4
 
 //Stack Configurations
-#define STACKCOLOR_VALUE                              0xDEADBEEF
+#define TASKSTACK_COLOR_VALUE                         0xDEADBEEF
 #define STACK_MAX_POOLSIZE                            512                   //no of words
 
 //Scheduler Configurations

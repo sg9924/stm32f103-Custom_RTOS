@@ -3,19 +3,10 @@
 #include <stdint.h>
 
 #include "rtos_task.h"
+#include "rtos_port.h"
 
 
-#define DISABLE_IRQ()            __asm("CPSID I")
-#define ENABLE_IRQ()             __asm("CPSIE I")
-
-#define MS_TO_TICK(ms_value)     (((ms_value * TICK_RATE_HZ) + (1000-1))/1000)
-
-//System Control Block ICSR Register Address and PendSV bit
-#define INTCTRL          (*(volatile uint32_t *)0xE000ED04)
-#define PENDSVSET        (1UL << 28)
-
-#define WORD_ALIGN_8BYTE(value)         (((value) + 1) & ~1)
-
+#define SCHEDULER_SWITCH_CONTEXT()      INTCTRL = PENDSVSET
 
 
 //Critical Section APIs
@@ -68,8 +59,8 @@ static inline void exitCriticalISR(uint32_t primask)
 
 
 //Macro versions
-#define CRITICAL_SECTION_ENTER(key)       uint32_t key = enterCriticalISR()
-#define CRITICAL_SECTION_EXIT(key)        exitCriticalISR(key)
+#define CRITICAL_SECTION_ENTER()       uint32_t key = enterCriticalISR()
+#define CRITICAL_SECTION_EXIT()        exitCriticalISR(key)
 
 
 void rtosKernel_Init();
