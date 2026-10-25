@@ -9,7 +9,7 @@
 
 //Configurations
 //Systick
-#define TASK_QUANTA_MS                                1000
+#define TASK_QUANTA_MS                                1
 #define TICK_RATE_HZ                                  (1000/TASK_QUANTA_MS)
 
 //Task Configurations
@@ -18,11 +18,10 @@
 #define TASK_MAX_NO_OF_PRIORITY                       4
 
 //Stack Configurations
-#define STACKCOLOR_VALUE                              0xDEADBEEF
+#define TASKSTACK_COLOR_VALUE                         0xDEADBEEF
 #define STACK_MAX_POOLSIZE                            512                    //no of words
 
 //Scheduler Configurations
-#define RTOS_SCHEDULER_START_DELAY                    3000
 #define RTOS_SCHEDULER_START_DELAY                    3000
 #define SCHEDULER                                     SCHEDULER_PRIORITY
 

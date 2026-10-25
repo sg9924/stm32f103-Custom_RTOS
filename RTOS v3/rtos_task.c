@@ -220,7 +220,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
 
 
 
-void taskUnblock(void)
+void taskCheckAndUnblock(void)
 {
     uint8_t priority, yield = 0;
     #if SCHEDULER == SCHEDULER_PRIORITY

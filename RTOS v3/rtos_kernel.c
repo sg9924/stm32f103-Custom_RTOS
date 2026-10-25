@@ -332,7 +332,7 @@ static void rtosKernel_TaskStackInit(uint8_t task_num)
     //stack coloring for rest of the stack
     for(int16_t i=17; i<=TCBS[task_num].stack_size_word; i++)
     {
-        pstack--; *pstack  = STACKCOLOR_VALUE;                 //Stack Color Value
+        pstack--; *pstack  = TASKSTACK_COLOR_VALUE;                 //Stack Color Value
     }
 }
 
@@ -667,8 +667,8 @@ void SysTick_Handler(void)
 
     //Increment SysTick
     Systick_Tick_Inc();
-    //Unblock necessary tasks
-    taskUnblock();
+    //Check and Unblock valid tasks
+    taskCheckAndUnblock();
 
     //Pend the PendSV Exception to handle context switch
     SCHEDULER_SWITCH_CONTEXT();
