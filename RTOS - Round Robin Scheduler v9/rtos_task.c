@@ -307,7 +307,7 @@ void taskBlockAbs(tcb_t* task, uint32_t abs_timeout_tick)
 //Task Check - Block List for Timeout
 //used in Systick to iterate all tasks and unblock valid ones
 //Accounts for overflow in Systick and Block Tick
-void taskCheck_BlockedListTimeout(void)
+void taskCheckAndUnblock(void)
 {
     //for round robin, blocked_queue array always has one element only.
     tcb_t* t     = blocked_queue[0];

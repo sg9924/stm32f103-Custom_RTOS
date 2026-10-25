@@ -64,7 +64,7 @@ void taskDelay(uint32_t delay_tick);
 void taskDelayAbs(uint32_t* last_wake_tick, uint32_t delay_tick);
 void taskBlock(tcb_t* task, uint32_t timeout_tick);
 void taskBlockAbs(tcb_t* task, uint32_t abs_timeout_tick);
-void taskCheck_BlockedListTimeout(void);
+void taskCheckAndUnblock(void);
 void taskUnblock(uint8_t task_id);
 void taskYield();
 void taskYieldFromISR();

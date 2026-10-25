@@ -68,25 +68,25 @@ static inline void exitCriticalISR(uint32_t primask)
 
 
 //Macro versions
-#define CRITICAL_SECTION_ENTER(key)       uint32_t key = enterCriticalISR()
-#define CRITICAL_SECTION_EXIT(key)        exitCriticalISR(key)
+#define CRITICAL_SECTION_ENTER()       uint32_t key = enterCriticalISR()
+#define CRITICAL_SECTION_EXIT()        exitCriticalISR(key)
 
+//Assert
+uint8_t assert(uint8_t condition, char* assert_msg);
 
 //Kernel
 void rtosKernel_Init();
 void rtosKernel_Launch(uint32_t quanta);
 
-//Assert
-uint8_t assert(uint8_t condition, char* assert_msg);
-
 //Stack Allocate
 uint32_t* Stack_Allocate(uint32_t size_in_words);
 
-
 //Queue Operations
+//Ready Queue
 void ready_queue_add(tcb_t* task);
 uint8_t ready_queue_remove(tcb_t* task, uint8_t state);
 
+//Blocked Queue
 void blocked_queue_add(tcb_t* task);
 uint8_t blocked_queue_remove(tcb_t* task, uint8_t state);
 

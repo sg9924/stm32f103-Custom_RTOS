@@ -250,9 +250,9 @@ static void rtosKernel_TaskStackInit(uint8_t task_num)
     //Get Stack Top
     uint32_t* pstack = TCBS[task_num].pstack;
     pstack--;
-
     //reassign stack pointer with the registers pushed into the task stack for scheduler launch
     TCBS[task_num].pstack = (uint32_t*)((uint32_t)TCBS[task_num].pstack - (16*4));
+
 
     //set T bit (bit 24) in xPSR to indicate Thumb state
     *pstack = (1<<24);                                         //xPSR
@@ -262,7 +262,6 @@ static void rtosKernel_TaskStackInit(uint8_t task_num)
 
     //below line for MSP usage only
     //pstack--; *pstack = 0xFFFFFFF9;                            //LR - Return to Thread mode and use MSP (not yet introduced PSP for tasks)
-
     //below line for PSP uasage for tasks and MSP for kernel
     pstack--; *pstack = 0xFFFFFFFD;                            //LR - Return to Thread mode and use PSP
 
@@ -295,7 +294,7 @@ static void rtosKernel_StackInit(void)
 static void rtosKernel_TaskInit(void)
 {
     //Disable all global Interrupts - Setting PRIMASK bit
-    CRITICAL_SECTION_ENTER(key);
+    CRITICAL_SECTION_ENTER();
 
     //Add Idle Task
     taskAdd_Idle();
@@ -307,7 +306,7 @@ static void rtosKernel_TaskInit(void)
     pcurrent = &(TCBS[1]);
 
     //Enable all global Interrupts - clearing PRIMASK bit
-    CRITICAL_SECTION_EXIT(key);
+    CRITICAL_SECTION_EXIT();
 }
 
 
@@ -356,9 +355,6 @@ void rtosKernel_Launch(uint32_t quanta)
     rtosInfo_Tasks();
     #endif
 
-    //Enable Systick Timer
-    SYSTICK_ENABLE();
-
     //Scheduler Initializations
     //Initialize the first task before Scheduler Launch
     pcurrent->task_state = TASK_STATE_RUNNING;
@@ -371,6 +367,9 @@ void rtosKernel_Launch(uint32_t quanta)
     pcurrent->task_quota--;
     ready_queue[0] = pcurrent->pnext;
     #endif
+
+    //Enable Systick Timer
+    SYSTICK_ENABLE();
 
     //Launch Scheduler
     rtosScheduler_Launch();
@@ -504,13 +503,13 @@ __attribute__((naked)) static void rtosScheduler_Launch(void)
 {
     __asm volatile (
         //Reset MSP to the top of stack (from vector table[0])
-        //reclaims any boot-time/kernel-init stack usage before we leave it forever
+        //reclaims any kernel-init stack usage before we leave it forever
         "LDR R0, =0xE000ED08    \n"   //VTOR address
         "LDR R0, [R0]           \n"   //R0 = vector table base address
         "LDR R0, [R0]           \n"   //R0 = initial MSP value (vector table entry 0)
         "MSR MSP, R0            \n"   //Reset MSP
 
-        //Enable interrupts (in case they were left disabled from boot/init code)
+        //Enable interrupts
         "CPSIE I                \n"
         "CPSIE F                \n"
         "DSB                    \n"
@@ -567,8 +566,8 @@ void SysTick_Handler(void)
 
     //Increment SysTick
     Systick_Tick_Inc();
-    //Unblock valid tasks
-    taskCheck_BlockedListTimeout();
+    //Check and Unblock valid tasks
+    taskCheckAndUnblock();
 
     //Pend the PendSV Exception to handle context switch
     INTCTRL = PENDSVSET;
