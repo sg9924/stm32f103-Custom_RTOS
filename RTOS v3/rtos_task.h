@@ -66,6 +66,7 @@ tcb_t* getTask_List();
 uint8_t getTask_Count();
 #if SCHEDULER == SCHEDULER_PRIORITY
 tcb_t* getTask_Priority(uint8_t priority);
+tcb_t* getTask_NextHighestPriority();
 #endif
 
 #endif

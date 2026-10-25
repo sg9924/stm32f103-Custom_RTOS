@@ -37,5 +37,6 @@
     - rename taskCheck_BlockedListTimeout to taskCheckAndUnblock
     - cleanup critical section enter and exit macros
 
-6. Task Unblock
+6. TASK:
     - Introduce Task Unblock for a specific Task
+    - Add getTask_NextHighestPriority() which is used the get the next highest priority task which is in ready queue

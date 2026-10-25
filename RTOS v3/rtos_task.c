@@ -395,3 +395,16 @@ tcb_t* getTask_Priority(uint8_t priority)
 
     return (getTask_Idle());
 }
+
+
+
+tcb_t* getTask_NextHighestPriority()
+{
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    {
+        if(ready_queue[i] != NULL)
+            return ready_queue[i];
+    }
+
+    return (getTask_Idle());
+}

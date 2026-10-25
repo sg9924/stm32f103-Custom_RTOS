@@ -362,7 +362,7 @@ void rtosKernel_TaskInit(void)
 
     //Initialize the current pointer of the TCB Linked List
     #if SCHEDULER == SCHEDULER_PRIORITY
-    pcurrent = getTask_Priority(0);
+    pcurrent = getTask_NextHighestPriority();
     #else
     pcurrent = &(TCBS[1]);
     #endif
@@ -559,7 +559,7 @@ void rtosScheduler_RoundRobinWeighted(void)
 static void rtosScheduler_Priority()
 {
     bool new_task_selected = false;
-    uint8_t loop_priority = TASK_MAX_NO_OF_PRIORITY-1;
+    uint8_t loop_priority  = TASK_MAX_NO_OF_PRIORITY-1;
 
     //current task - still running and its not a idle task
     if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)
