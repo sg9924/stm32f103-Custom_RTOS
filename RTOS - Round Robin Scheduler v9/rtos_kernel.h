@@ -1,19 +1,10 @@
 #ifndef __RTOSKERNEL_H__
 #define __RTOSKERNEL_H__
+
 #include <stdint.h>
 
 #include "rtos_task.h"
-
-#define DISABLE_IRQ()                   __asm volatile ("CPSID I"::: "memory")
-#define ENABLE_IRQ()                    __asm volatile ("CPSIE I"::: "memory")
-
-#define MS_TO_TICK(ms_value)            (((ms_value * TICK_RATE_HZ) + (1000-1))/1000)
-
-//System Control Block ICSR Register Address and PendSV bit
-#define INTCTRL                         (*(volatile uint32_t *)0xE000ED04)
-#define PENDSVSET                       (1UL << 28)
-
-#define WORD_ALIGN_8BYTE(value)         (((value) + 1) & ~1)
+#include "rtos_port.h"
 
 #define SCHEDULER_SWITCH_CONTEXT()      INTCTRL = PENDSVSET
 

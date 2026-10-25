@@ -5,7 +5,6 @@
 #include "rtos_queue.h"
 #include "rtos_info.h"
 #include "rtos_task.h"
-#include "rtos_port.h"
 
 
 
@@ -538,7 +537,7 @@ __attribute__((naked)) void SVC_Handler(void)
         "LDMIA R0!, {R4-R11}    \n"   //R0 now points at the R0 slot of the fake frame
 
         //Point PSP at the remainder of the frame (R0-R3,R12,LR,PC,xPSR)
-        //These are NOT restored here - hardware will auto-unstack them on exception return
+        //These are NOT restored here - hardware will automatically unstack them on exception return
         "MSR PSP, R0            \n"
         "ISB                    \n"
 
@@ -570,7 +569,7 @@ void SysTick_Handler(void)
     taskCheckAndUnblock();
 
     //Pend the PendSV Exception to handle context switch
-    INTCTRL = PENDSVSET;
+    SCHEDULER_SWITCH_CONTEXT();
 
     ENABLE_IRQ();
 }
