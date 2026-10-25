@@ -214,7 +214,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
         blocked_queue_add(task);
 
         //Pend the PendSV Exception to handle context switch
-        INTCTRL = PENDSVSET;
+        SCHEDULER_SWITCH_CONTEXT();
     }
 }
 
@@ -283,12 +283,12 @@ void taskYield(bool higherPriorityTaskWoken)
     #if SCHEDULER == SCHEDULER_PRIORITY
         if(higherPriorityTaskWoken)
             //Pend the PendSV Exception to handle context switch
-            INTCTRL = PENDSVSET;
+            SCHEDULER_SWITCH_CONTEXT();
     //for round robin including weighted, condition need not be checked
     //we yield regardless of the condition
     #else
         //Pend the PendSV Exception to handle context switch
-        INTCTRL = PENDSVSET;
+        SCHEDULER_SWITCH_CONTEXT();
     #endif
 }
 
@@ -303,12 +303,12 @@ void taskYieldFromISR(bool higherPriorityTaskWoken)
     #if SCHEDULER == SCHEDULER_PRIORITY
         if(higherPriorityTaskWoken)
             //Pend the PendSV Exception to handle context switch
-            INTCTRL = PENDSVSET;
+            SCHEDULER_SWITCH_CONTEXT();
     //for round robin including weighted, condition need not be checked
     //we yield regardless of the condition
     #else
         //Pend the PendSV Exception to handle context switch
-        INTCTRL = PENDSVSET;
+        SCHEDULER_SWITCH_CONTEXT();
     #endif
 }
 

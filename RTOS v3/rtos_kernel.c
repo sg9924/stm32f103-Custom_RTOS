@@ -671,7 +671,7 @@ void SysTick_Handler(void)
     taskUnblock();
 
     //Pend the PendSV Exception to handle context switch
-    INTCTRL = PENDSVSET;
+    SCHEDULER_SWITCH_CONTEXT();
 
     ENABLE_IRQ();
 }
@@ -699,9 +699,13 @@ __attribute__((naked)) void PendSV_Handler(void)
     //save R0,LR
     __asm("PUSH {R0,LR}");
 
-    //Call priority scheduler to select the next task.
+    //Call scheduler
     //This updates the 'pcurrent' pointer variable to points to the new TCB.
-    #if SCHEDULER == SCHEDULER_PRIORITY
+    #if SCHEDULER == SCHEDULER_ROUND_ROBIN
+    __asm("BL rtosScheduler_RoundRobin");
+    #elif SCHEDULER == SCHEDULER_RR_WEIGHTED
+    __asm("BL rtosScheduler_RoundRobinWeighted");
+    #elif SCHEDULER == SCHEDULER_PRIORITY
     __asm("BL rtosScheduler_Priority");
     #endif
 

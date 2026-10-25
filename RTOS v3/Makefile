@@ -43,7 +43,7 @@ OTHERS=stm32f103xx_init.o stm32f103xx_serial.o stm32f103xx_utilities.o
 #Flags
 CFLAGS= -c -mcpu=$(MACH) -mthumb -mfloat-abi=soft -std=gnu11 -Wall -Wno-unused -O0 -I$(INC_DIR)
 DEBUG_FLAG= -g3
-LDFLAGS= --specs=nano.specs -mcpu=$(MACH) -mthumb -T $(LINK) -Wl,-Map=logs/final.map
+LDFLAGS= --specs=nano.specs -mcpu=$(MACH) -mthumb -T $(LINK) -Wl,-Map=final.map
 
 
 
