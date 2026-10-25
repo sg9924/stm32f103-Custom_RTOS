@@ -355,23 +355,40 @@ void taskCheckAndUnblock(void)
 
 
 //Task Unblock
-//Unblocks a sepcific task by task id
-void taskUnblock(uint8_t task_id)
+//Unblocks a sepcific task
+void taskUnblock(tcb_t* task)
 {
-    if(task_id > NO_OF_TASKS) return;
-
-    tcb_t* t = &TCBS[task_id];
-
-    DISABLE_IRQ();
-    if(t->task_state == TASK_STATE_BLOCKED)
+    if(task == NULL) return;
+    
+    uint8_t priority = task->task_priority;
+ 
+    //Find and remove task from blocked queue
+    tcb_t* blocked_list = blocked_queue[priority];
+    tcb_t* prev         = NULL;
+    
+    while(blocked_list != NULL)
     {
-        t->task_state      = TASK_STATE_READY;
-        t->block_tick      = 0;
-        t->task_blocked_at = 0;
-    }
-    ENABLE_IRQ();
+        //Task found
+        if(blocked_list == task)
+        {
+            //remove the task from blocked queue
+            if (prev == NULL)
+                blocked_queue[priority] = blocked_list->pnext;
+            else
+                prev->pnext = blocked_list->pnext;
 
-    SCHEDULER_SWITCH_CONTEXT();
+            task->block_tick = 0;
+            
+            //Add to ready queue
+            ready_queue_add(task);
+            
+            return;
+        }
+        
+        prev         = blocked_list;
+        blocked_list = blocked_list->pnext;
+    }
+    return;
 }
 
 
