@@ -8,9 +8,7 @@
 
 char* rtosInfo_Scheduler(void)
 {
-    #if SCHEDULER == SCHEDULER_PRIORITY
-        return "PRIORITY";
-    #endif
+    return "PRIORITY";
 }
 
 

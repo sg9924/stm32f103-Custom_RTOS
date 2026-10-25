@@ -94,9 +94,7 @@ void ready_queue_add(tcb_t* task)
 
 uint8_t ready_queue_remove(tcb_t* task, uint8_t state)
 {
-    #if SCHEDULER == SCHEDULER_PRIORITY
-        uint8_t priority = task->task_priority;
-    #endif
+    uint8_t priority = task->task_priority;
 
     if(ready_queue[priority] != NULL)
     {
@@ -197,9 +195,7 @@ void blocked_queue_add(tcb_t* task)
 
 uint8_t blocked_queue_remove(tcb_t* task, uint8_t state)
 {
-    #if SCHEDULER == SCHEDULER_PRIORITY
-        uint8_t priority = task->task_priority;
-    #endif
+    uint8_t priority = task->task_priority;
 
     if(blocked_queue[priority] != NULL)
     {
@@ -324,9 +320,7 @@ static void rtosKernel_TaskInit(void)
     rtosKernel_StackInit();
 
     //Initialize the current pointer of the TCB Linked List
-    #if SCHEDULER == SCHEDULER_PRIORITY
     pcurrent = getTask_Priority(0);
-    #endif
 
     //Enable all global Interrupts - clearing PRIMASK bit
     CRITICAL_SECTION_EXIT();
@@ -337,11 +331,8 @@ static void rtosKernel_TaskInit(void)
 void rtosKernel_Init()
 {
     __task_count_init();
-    #if SCHEDULER == SCHEDULER_PRIORITY
-    //initialize the ready and blocked queue
     ready_queue_init();
     blocked_queue_init();
-    #endif
 }
 
 
@@ -382,9 +373,7 @@ void rtosKernel_Launch(uint32_t quanta)
     #endif
 
     //Scheduler Initializations
-    #if SCHEDULER == SCHEDULER_PRIORITY
     ready_queue[pcurrent->task_priority] = pcurrent->pnext;
-    #endif
 
     //Initialize the first task before Scheduler Launch
     pcurrent->task_state = TASK_STATE_RUNNING;
@@ -543,9 +532,7 @@ __attribute__((naked)) void PendSV_Handler(void)
 
     //Call priority scheduler to select the next task.
     //This updates the 'pcurrent' pointer variable to points to the new TCB.
-    #if SCHEDULER == SCHEDULER_PRIORITY
     __asm("BL rtosScheduler_Priority");
-    #endif
 
     //Restore the EXC_RETURN value back into LR
     //pop R0,LR
