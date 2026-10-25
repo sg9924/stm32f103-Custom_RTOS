@@ -275,6 +275,48 @@ void taskCheckAndUnblock(void)
 
 
 
+//Unblock a Specific Task
+void taskUnblock(tcb_t* task)
+{
+    if(task == NULL) return;
+    
+    uint8_t priority = task->task_priority;
+ 
+    //Find and remove task from blocked queue
+    tcb_t* blocked_list = blocked_queue[priority];
+    tcb_t* prev         = NULL;
+    
+    while(blocked_list != NULL)
+    {
+        //Task found
+        if(blocked_list == task)
+        {
+            //remove the task from blocked queue
+            if (prev == NULL)
+                blocked_queue[priority] = blocked_list->pnext;
+            else
+                prev->pnext = blocked_list->pnext;
+            
+            task->block_tick = 0;
+            
+            //Add to ready queue
+            ready_queue_add(task);
+            
+            //If this task has higher priority than current, yield
+            //higher priorty -> lower value
+            if (task->task_priority <= pcurrent->task_priority)
+                taskYield(true);
+            
+            return;
+        }
+        
+        prev         = blocked_list;
+        blocked_list = blocked_list->pnext;
+    }
+}
+
+
+
 //Task Yield
 void taskYield(bool higherPriorityTaskWoken)
 {
