@@ -5,8 +5,8 @@
 
 //external variables
 extern uint32_t current_tick;
-extern tcb_t* ready_queue[MAX_NO_OF_PRIORITY];
-extern tcb_t* blocked_queue[MAX_NO_OF_PRIORITY];
+extern tcb_t* ready_queue[TASK_MAX_NO_OF_PRIORITY];
+extern tcb_t* blocked_queue[TASK_MAX_NO_OF_PRIORITY];
 
 tcb_t TCBS[NO_OF_TASKS + 1];  //declare an array of TCB's
 tcb_t *pcurrent;            //current pointer to a tcb
@@ -61,7 +61,7 @@ void taskAdd_Idle()
     TCBS[0].ptask_func    = &taskIdle;
     TCBS[0].task_desc     = "Idle Task";
     TCBS[0].task_id       = 0;
-    TCBS[0].task_priority = MAX_NO_OF_PRIORITY -1 ; //lowest priority
+    TCBS[0].task_priority = TASK_MAX_NO_OF_PRIORITY -1 ; //lowest priority
 
     TCBS[0].stack_size_word    = 100;
     TCBS[0].pstack             = Stack_Allocate(100);
@@ -122,7 +122,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
 void taskCheckAndUnblock(void)
 {
     uint8_t priority, yield = 0;
-    priority = MAX_NO_OF_PRIORITY;
+    priority = TASK_MAX_NO_OF_PRIORITY;
 
     //iterate through each priority from highest to lowest
     for(uint8_t i=0; i<priority; i++)
@@ -269,6 +269,19 @@ tcb_t* getTask_Priority(uint8_t priority)
     {
         if(TCBS[i].task_priority == priority)
             return &TCBS[i];
+    }
+
+    return (getTask_Idle());
+}
+
+
+
+tcb_t* getTask_NextHighestPriority()
+{
+    for(uint8_t i=0; i<NO_OF_TASKS+1; i++)
+    {
+        if(ready_queue[i] != NULL)
+            return ready_queue[i];
     }
 
     return (getTask_Idle());

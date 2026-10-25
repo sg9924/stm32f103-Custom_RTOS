@@ -14,7 +14,7 @@
 //Task Configurations
 #define NO_OF_TASKS                                   3
 #define TASK_DESC_LENGTH                              100
-#define MAX_NO_OF_PRIORITY                            4
+#define TASK_MAX_NO_OF_PRIORITY                            4
 
 //Stack Configurations
 #define TASKSTACK_COLOR_VALUE                         0xDEADBEEF

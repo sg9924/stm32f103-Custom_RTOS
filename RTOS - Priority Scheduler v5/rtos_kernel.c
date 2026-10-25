@@ -13,8 +13,8 @@ extern tcb_t *pcurrent;                           //current pointer to a tcb
 uint32_t     TCBS_STACK_POOL[STACK_MAX_POOLSIZE];       //Stack Pool Array
 uint32_t     stack_pool_index = 0;                      //Keeps track of memory used (in terms of words)
 
-tcb_t*       ready_queue[MAX_NO_OF_PRIORITY];           //ready queues for each priority
-tcb_t*       blocked_queue[MAX_NO_OF_PRIORITY];         //blocked queues for each priority
+tcb_t*       ready_queue[TASK_MAX_NO_OF_PRIORITY];           //ready queues for each priority
+tcb_t*       blocked_queue[TASK_MAX_NO_OF_PRIORITY];         //blocked queues for each priority
 
 
 
@@ -38,7 +38,7 @@ static void rtosScheduler_Priority();
 /****************************************************Ready Queue APIs Start*****************************************************/
 static void ready_queue_init()
 {
-    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
         ready_queue[i] = NULL;
 }
 
@@ -56,7 +56,7 @@ static void ready_queue_reset()
 
 static uint8_t ready_queue_check_empty()
 {
-    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
     {
         if(ready_queue[i] == NULL)
             continue;
@@ -130,13 +130,13 @@ uint8_t ready_queue_remove(tcb_t* task, uint8_t state)
 /***************************************************Blocked Queue APIs Start****************************************************/
 static void blocked_queue_init()
 {
-    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
         blocked_queue[i] = NULL;
 }
 
 static uint8_t blocked_queue_check_empty()
 {
-    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
     {
         if(blocked_queue[i] == NULL)
             continue;
@@ -151,7 +151,7 @@ static uint8_t blocked_queue_check_empty()
 static uint8_t blocked_queue_check(tcb_t* task)
 {
     tcb_t* t;
-    for(uint8_t i=0; i<MAX_NO_OF_PRIORITY; i++)
+    for(uint8_t i=0; i<TASK_MAX_NO_OF_PRIORITY; i++)
     {
         t = blocked_queue[i];
         while(t != NULL)
@@ -320,7 +320,7 @@ static void rtosKernel_TaskInit(void)
     rtosKernel_StackInit();
 
     //Initialize the current pointer of the TCB Linked List
-    pcurrent = getTask_Priority(0);
+    pcurrent = getTask_NextHighestPriority();
 
     //Enable all global Interrupts - clearing PRIMASK bit
     CRITICAL_SECTION_EXIT();
@@ -390,7 +390,7 @@ void rtosKernel_Launch(uint32_t quanta)
 static void rtosScheduler_Priority()
 {
     bool new_task_selected = false;
-    uint8_t loop_priority = MAX_NO_OF_PRIORITY-1;
+    uint8_t loop_priority  = TASK_MAX_NO_OF_PRIORITY-1;
 
     //current task - still running and its not a idle task
     if(pcurrent->task_state == TASK_STATE_RUNNING && pcurrent->task_id != 0)

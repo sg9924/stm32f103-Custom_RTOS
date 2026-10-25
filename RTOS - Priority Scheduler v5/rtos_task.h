@@ -59,6 +59,7 @@ tcb_t* getTask_Idle();
 tcb_t* getTask_List();
 uint8_t getTask_Count();
 tcb_t* getTask_Priority(uint8_t priority);
+tcb_t* getTask_NextHighestPriority();
 
 //Task Notifications
 void taskNotify_Reset(tcb_t* task);
