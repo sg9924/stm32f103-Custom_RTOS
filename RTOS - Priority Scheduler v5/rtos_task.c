@@ -122,9 +122,7 @@ void taskBlock(tcb_t* task, uint32_t timeout_tick)
 void taskCheckAndUnblock(void)
 {
     uint8_t priority, yield = 0;
-    #if SCHEDULER == SCHEDULER_PRIORITY
     priority = MAX_NO_OF_PRIORITY;
-    #endif
 
     //iterate through each priority from highest to lowest
     for(uint8_t i=0; i<priority; i++)
@@ -286,9 +284,7 @@ void taskNotify_Send(tcb_t* task, uint32_t value, uint8_t action)
     //if the unblocked task has higher priority (strictly), yield now - priority scheduler
     if(was_blocked && task->task_priority > pcurrent->task_priority)
     {
-        #if SCHEDULER == SCHEDULER_PRIORITY
         taskYield(true);
-        #endif
     }
 }
 

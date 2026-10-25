@@ -22,7 +22,6 @@
 
 //Scheduler Configurations
 #define RTOS_SCHEDULER_START_DELAY                    3000
-#define SCHEDULER                                     SCHEDULER_PRIORITY
 
 
 
