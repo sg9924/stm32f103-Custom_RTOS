@@ -485,6 +485,17 @@ __attribute__((naked)) void rtosScheduler_Launch(void)
     __asm("BX LR");
 }
 /*****************************************************Scheduler APIs End*************************************************/
+//Check if there is task whose priority is equal or above the priority of current task
+//this check is performed to determine whether a context switch is required or not
+static bool rtosKernel_ReadyTaskAtOrAboveCurrent(void)
+{
+    for(uint8_t i=0; i<=pcurrent->task_priority && i<TASK_MAX_NO_OF_PRIORITY; i++)
+    {
+        if(ready_queue[i] != NULL)
+            return true;
+    }
+    return false;
+}
 
 //Systick IRQ Handler (Standard C Function now, not naked)
 void SysTick_Handler(void)
@@ -501,8 +512,15 @@ void SysTick_Handler(void)
     //Check and Unblock valid tasks
     taskCheckAndUnblock();
 
-    //Pend the PendSV Exception to handle context switch
-    SCHEDULER_SWITCH_CONTEXT();
+    #if PENDSV_RUN_EACH_TICK == 0
+        //Call PendSV only when we have valid task at a
+        //equal priority (time slicing) or higher priority (preempting) than current
+        if(rtosKernel_ReadyTaskAtOrAboveCurrent() == true)
+            SCHEDULER_SWITCH_CONTEXT();
+    #else
+        //Always pend the PendSV Exception to handle context switch
+        SCHEDULER_SWITCH_CONTEXT();
+    #endif
 
     ENABLE_IRQ();
 }

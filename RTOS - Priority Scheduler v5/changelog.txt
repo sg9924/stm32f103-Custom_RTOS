@@ -41,3 +41,8 @@
 9: TASK:
     - Introduce Task Unblock for a specific Task
     - Add getTask_NextHighestPriority() which is used the get the next highest priority task which is in ready queue
+
+10: KERNEL:
+    - Changes to trigger Pend SV Interrupt for context switch only when we have a task who has a priority equal to or higher than the current task
+    - This can switched on or off with a config option PENDSV_RUN_EACH_TICK
+    - rtosKernel_ReadyTaskAtOrAboveCurrent is used to check for the required task
