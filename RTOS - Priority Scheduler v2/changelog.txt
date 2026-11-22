@@ -48,5 +48,8 @@
     - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
 
 7: Bug Fixes - KERNEL, TASK
-        - Idle Task Selection Condition Logic in the Scheduler
-        - Task Unblock: the block tick condition doesn't account for the tick overflow
+    - Idle Task Selection Condition Logic in the Scheduler
+    - Task Unblock: the block tick condition doesn't account for the tick overflow
+8: Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
