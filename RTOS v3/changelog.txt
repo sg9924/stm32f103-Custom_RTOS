@@ -40,3 +40,7 @@
 6. TASK:
     - Introduce Task Unblock for a specific Task
     - Add getTask_NextHighestPriority() which is used the get the next highest priority task which is in ready queue
+
+7. Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
