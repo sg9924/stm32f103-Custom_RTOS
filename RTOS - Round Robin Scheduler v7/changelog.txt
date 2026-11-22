@@ -42,3 +42,7 @@
 
 8: KERNEL, TASK
     - Clean up Stack setup related Code
+
+9: Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
