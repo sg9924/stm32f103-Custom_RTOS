@@ -30,3 +30,7 @@
 
 4: Task Unblock
     - Corrected Task Unblock Logic
+
+5: Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
