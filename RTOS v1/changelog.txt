@@ -8,3 +8,7 @@
 
 2: BUG FIX
     - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
+
+3: Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
