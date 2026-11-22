@@ -43,3 +43,7 @@
 
 11. TASK:
     - Correct taskYield, taskYieldFromISR
+
+12. Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
