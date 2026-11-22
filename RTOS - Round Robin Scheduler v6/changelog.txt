@@ -45,3 +45,6 @@
         - Task Unblock:
             - the block tick condition doesn't account for the tick overflow
             - task is not added back to the ready queue after it has been unblocked
+9: Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
