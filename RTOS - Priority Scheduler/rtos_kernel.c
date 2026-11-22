@@ -156,9 +156,7 @@ void rtosKernel_TaskInit(void)
     rtosKernel_StackInit();
 
     //Initialize the current pointer of the TCB Linked List
-    #if SCHEDULER == SCHEDULER_PRIORITY
     pcurrent = getTask_Priority(0);
-    #endif
 
     //Enable all global Interrupts - clearing PRIMASK bit
     ENABLE_IRQ();
@@ -169,10 +167,8 @@ void rtosKernel_TaskInit(void)
 void rtosKernel_Init()
 {
     __task_count_init();
-    #if SCHEDULER == SCHEDULER_PRIORITY
     //initialize the ready queue
     ready_queue_init();
-    #endif
 }
 
 
@@ -209,9 +205,7 @@ void rtosKernel_Launch(uint32_t quanta)
     //Initialize the first task before Scheduler Launch
     pcurrent->task_state = TASK_STATE_RUNNING;
 
-    #if SCHEDULER == SCHEDULER_PRIORITY
     ready_queue[pcurrent->task_priority] = pcurrent->pnext;
-    #endif
 
     //Enable Systick Timer
     SYSTICK_ENABLE();
@@ -349,9 +343,7 @@ __attribute__((naked)) void SysTick_Handler(void)
     //call task unblock
     //__asm("BL taskUnblock");
     //call scheduler
-    #if SCHEDULER == SCHEDULER_PRIORITY
     __asm("BL rtosScheduler_Priority");
-    #endif
     //restore R0,LR
     __asm("POP {R0,LR}");
 

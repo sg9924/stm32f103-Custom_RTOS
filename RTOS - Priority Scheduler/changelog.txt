@@ -32,4 +32,7 @@
     - Bug: incorrect size calculation in Startup code where we initialize .bss and copy .data to SRAM
 
 5: Bug Fixes - KERNEL
-        - Idle Task Selection Condition Logic in the Scheduler
+    - Idle Task Selection Condition Logic in the Scheduler
+6: Bug Fix - KERNEL
+    - Queue Remove Functions
+    - Cleanup
