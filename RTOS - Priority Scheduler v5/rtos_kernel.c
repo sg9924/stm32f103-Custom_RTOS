@@ -95,33 +95,27 @@ void ready_queue_add(tcb_t* task)
 uint8_t ready_queue_remove(tcb_t* task, uint8_t state)
 {
     uint8_t priority = task->task_priority;
+    tcb_t* prev      = NULL;
+    tcb_t* i         = ready_queue[priority];
 
-    if(ready_queue[priority] != NULL)
+
+    while(i != NULL)
     {
-        //get the starting task of the specific priority
-        tcb_t* i = ready_queue[priority];
-
-        //starting task of queue matches
         if(i == task)
         {
+            //head
+            if(prev == NULL) ready_queue[priority] = i->pnext;
+            //middle or end
+            else prev->pnext = i->pnext;
+
+            //Reset params of the task removed
+            i->pnext      = NULL;
             i->task_state = state;
-            ready_queue[priority] = i->pnext;
+
+            return 1;
         }
-        //first task didn't match
-        else
-        {   
-            //iterate
-            while(i->pnext != NULL)
-            {
-                if(i->pnext == task)
-                {
-                    (i->pnext)->task_state = state;
-                    i = (i->pnext)->pnext;
-                    return 1;
-                }
-                i = i->pnext;
-            }
-        }
+        prev = i;
+        i    = i->pnext;
     }
     return 0;
 }
@@ -196,35 +190,26 @@ void blocked_queue_add(tcb_t* task)
 uint8_t blocked_queue_remove(tcb_t* task, uint8_t state)
 {
     uint8_t priority = task->task_priority;
+    tcb_t* prev      = NULL;
+    tcb_t* i         = blocked_queue[priority];
 
-    if(blocked_queue[priority] != NULL)
+    while(i != NULL)
     {
-        //get the starting task of the specific priority
-        tcb_t* i = blocked_queue[priority];
-
-        //starting task of queue matches
         if(i == task)
         {
+            //head
+            if(prev == NULL) blocked_queue[priority] = i->pnext;
+            //middle or end
+            else prev->pnext = i->pnext;
+
+            //Reset params of the task removed
+            i->pnext      = NULL;
             i->task_state = state;
-            i->block_tick = 0;
-            blocked_queue[priority] = i->pnext;
+
+            return 1;
         }
-        //first task didn't match
-        else
-        {   
-            //iterate
-            while(i->pnext != NULL)
-            {
-                if(i->pnext == task)
-                {
-                    (i->pnext)->task_state = state;
-                    (i->pnext)->block_tick = 0;
-                    i = (i->pnext)->pnext;
-                    return 1;
-                }
-                i = i->pnext;
-            }
-        }
+        prev = i;
+        i    = i->pnext;
     }
     return 0;
 }
